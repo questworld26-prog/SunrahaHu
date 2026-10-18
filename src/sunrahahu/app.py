@@ -4,6 +4,7 @@ import threading
 import time
 
 from sunrahahu.audio import AudioRecorder
+from sunrahahu.commander import handle_command
 from sunrahahu.feedback import play_done_cue, play_listening_cue, play_typing_cue
 from sunrahahu.injector import inject_text_to_active_window
 from sunrahahu.transcriber import Transcriber
@@ -90,8 +91,10 @@ class SunrahaHuApp:
 
                 if text:
                     self.last_transcribed_text = text
-                    inject_text_to_active_window(text)
-                    play_done_cue(async_play=True)
+                    handled = handle_command(text)
+                    if not handled:
+                        inject_text_to_active_window(text)
+                        play_done_cue(async_play=True)
                 else:
                     print("[SunrahaHu] No speech detected or below silence threshold.")
             except Exception as e:

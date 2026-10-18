@@ -59,7 +59,8 @@ SunrahaHu/
 ├── src/sunrahahu/
 │   ├── app.py          # Central orchestrator: state machine, debounce locks, worker thread
 │   ├── audio.py        # 16kHz audio capture with non-blocking abort stream cleanup
-│   ├── feedback.py     # Voice cues ("सुन रहा हूँ", "Typing", "Tink.aiff")
+│   ├── commander.py    # Jarvis voice command router & macOS desktop space switching
+│   ├── feedback.py     # Voice cues ("सुन रहा हूँ", "Typing", "Tink.aiff", command speech)
 │   ├── hotkey.py       # Global keyboard listener using pynput
 │   ├── injector.py     # Direct macOS Quartz CGEvent Unicode string typing
 │   ├── main.py         # macOS menu bar app (rumps) & language selector
@@ -67,6 +68,7 @@ SunrahaHu/
 ├── tests/
 │   ├── test_app.py         # State machine & toggle unit tests
 │   ├── test_audio.py       # Audio recording & buffer concatenation
+│   ├── test_commander.py   # Jarvis command parsing & desktop switching tests
 │   ├── test_edge_cases.py  # Double start, rapid abort, disconnected mic, NaN audio
 │   ├── test_feedback.py   # Voice cues & fallback speech
 │   ├── test_injector.py   # Direct unicode injection & emoji support

@@ -2,7 +2,12 @@
 
 from unittest.mock import patch
 
-from sunrahahu.feedback import play_done_cue, play_listening_cue, play_typing_cue
+from sunrahahu.feedback import (
+    play_command_cue,
+    play_done_cue,
+    play_listening_cue,
+    play_typing_cue,
+)
 
 
 @patch("subprocess.run")
@@ -45,5 +50,22 @@ def test_play_typing_cue_fallback(mock_run):
 def test_play_done_cue(mock_run):
     with patch("os.path.exists", return_value=True):
         play_done_cue(async_play=False)
+        mock_run.assert_called_once()
+        assert "afplay" in mock_run.call_args[0][0]
+
+
+@patch("subprocess.run")
+def test_play_command_cue_speech(mock_run):
+    play_command_cue("Switching to desktop 3", async_play=False)
+    mock_run.assert_called_once()
+    args = mock_run.call_args[0][0]
+    assert "say" in args
+    assert "Switching to desktop 3" in args
+
+
+@patch("subprocess.run")
+def test_play_command_cue_sound(mock_run):
+    with patch("os.path.exists", return_value=True):
+        play_command_cue(None, async_play=False)
         mock_run.assert_called_once()
         assert "afplay" in mock_run.call_args[0][0]

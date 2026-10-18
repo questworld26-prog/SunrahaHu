@@ -1,3 +1,5 @@
+import threading
+
 import rumps
 from PyObjCTools import AppHelper
 
@@ -55,7 +57,7 @@ class SunrahaHuMenuBar(rumps.App):
             _update()
 
     def manual_trigger(self, _):
-        self.app_core.toggle_recording()
+        threading.Thread(target=self.app_core.toggle_recording, daemon=True).start()
 
     def select_language(self, lang_code, sender):
         self.app_core.set_language(lang_code)

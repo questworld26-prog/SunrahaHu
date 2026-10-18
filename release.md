@@ -1,5 +1,27 @@
 # Releases
 
+## [1.0.0] - 2026-10-18
+
+### Summary
+Milestone **1.0.0 production release** of **SunrahaHu (सुन रहा हूँ)** — high-speed background macOS dictation and hands-free voice automation utility powered by **Whisper Large-V3-Turbo** on Apple Silicon Metal GPU (`mlx-whisper`).
+
+### Key Highlights & Features
+- **Voice Commands & macOS Automation**:
+  - Say **"Computer"**, **"Command"**, **"Suno"**, **"Hey Mac"**, or **"Jarvis"** followed by system actions (e.g., *"Computer switch to desktop 3"*, *"Jarvis switch to desktop 1"*).
+  - Switches spaces instantly using macOS Quartz `Control + 1..9` HID event taps without elevated AppleScript permissions.
+  - Automatic phonetic tolerance for Whisper mis-transcriptions (`service`, `java`, `travis`, homophones `to`/`too`/`for`, and ordinals `first`..`ninth`).
+  - Spoken audio feedback cues (e.g. *"Switching to desktop 3"*) and alerts for out-of-range commands.
+- **Robust macOS CoreAudio & Cocoa Stability**:
+  - Eliminated CoreAudio HALC_IOThread mutex deadlocks with threaded stream teardown and timeouts.
+  - Menu bar trigger actions now execute asynchronously to prevent Cocoa main UI thread blocking.
+- **Multilingual & Roman Script Dictation**:
+  - Auto-detect, English, Bengali (**বাংলা**), and Hindi (**हिन्दी**).
+  - Trilingual Roman Script mode for natural code-switching without translation (*"Ami theek achi, aap batao what is the plan?"*).
+- **Direct Quartz Unicode Typing**:
+  - Injects transcribed text directly into active windows via `CGEventKeyboardSetUnicodeString`, leaving clipboard contents untouched.
+- **Comprehensive Quality Assurance**:
+  - 98 automated unit, edge case, and stress tests passing with 100% test fidelity.
+
 ## [0.5.1] - 2026-10-18
 
 ### Summary

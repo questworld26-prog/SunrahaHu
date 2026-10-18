@@ -101,3 +101,40 @@ def test_app_language_selection(
 
     app.transcriber.transcribe.assert_called_once_with(fake_audio, language="bn")
     mock_inject.assert_called_once_with("হ্যালো বোব")
+
+
+@patch("sunrahahu.app.handle_command", return_value=True)
+@patch("sunrahahu.app.play_typing_cue")
+@patch("sunrahahu.app.play_done_cue")
+@patch("sunrahahu.app.inject_text_to_active_window")
+@patch("sunrahahu.app.play_listening_cue")
+@patch("sunrahahu.app.AudioRecorder")
+@patch("sunrahahu.app.Transcriber")
+def test_app_jarvis_command_flow(
+    mock_transcriber_cls,
+    mock_recorder_cls,
+    mock_listening_cue,
+    mock_inject,
+    mock_done_cue,
+    mock_typing_cue,
+    mock_handle_cmd,
+):
+    app = SunrahaHuApp()
+    app.toggle_recording()
+
+    fake_audio = np.ones(16000, dtype=np.float32)
+    app.recorder.stop.return_value = fake_audio
+    app.transcriber.transcribe.return_value = "Jarvis switch to desktop 3"
+
+    with patch("threading.Thread") as mock_thread:
+
+        def run_target(target, daemon):
+            target()
+            return MagicMock()
+
+        mock_thread.side_effect = run_target
+        app.toggle_recording()
+
+    mock_handle_cmd.assert_called_once_with("Jarvis switch to desktop 3")
+    mock_inject.assert_not_called()
+    mock_done_cue.assert_not_called()

@@ -1,6 +1,7 @@
 """Audio recording utility for SunrahaHu."""
 
 import queue
+import threading
 
 import numpy as np
 import sounddevice as sd
@@ -29,12 +30,19 @@ class AudioRecorder:
 
         # Stop existing stream if already open
         if self.stream is not None:
-            try:
-                self.stream.abort(ignore_errors=True)
-                self.stream.close(ignore_errors=True)
-            except Exception:
-                pass
+            old_stream = self.stream
             self.stream = None
+
+            def _close_old():
+                try:
+                    old_stream.abort(ignore_errors=True)
+                    old_stream.close(ignore_errors=True)
+                except Exception:
+                    pass
+
+            t = threading.Thread(target=_close_old, daemon=True)
+            t.start()
+            t.join(timeout=0.2)
 
         self.is_recording = True
         try:
@@ -54,15 +62,22 @@ class AudioRecorder:
     def stop(self) -> np.ndarray:
         """Stop capturing audio and return recorded numpy float32 buffer."""
         self.is_recording = False
-        if self.stream is not None:
-            try:
-                # Use abort() instead of stop() on macOS CoreAudio
-                # stop() waits for pending buffer delivery which deadlocks in HALC_IOThread mutex
-                self.stream.abort(ignore_errors=True)
-                self.stream.close(ignore_errors=True)
-            except Exception:
-                pass
-            self.stream = None
+        stream = self.stream
+        self.stream = None
+
+        if stream is not None:
+
+            def _close_stream():
+                try:
+                    stream.abort(ignore_errors=True)
+                    stream.close(ignore_errors=True)
+                except Exception:
+                    pass
+
+            # Close stream on a background thread with timeout to prevent CoreAudio HALC_IOThread deadlocks
+            t = threading.Thread(target=_close_stream, daemon=True)
+            t.start()
+            t.join(timeout=0.2)
 
         chunks = []
         while not self.audio_queue.empty():

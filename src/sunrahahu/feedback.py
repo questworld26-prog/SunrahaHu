@@ -54,3 +54,18 @@ def play_done_cue(async_play: bool = True):
         threading.Thread(target=_play, daemon=True).start()
     else:
         _play()
+
+
+def play_command_cue(message: str | None = None, async_play: bool = True):
+    """Play spoken confirmation or sound for executed commands."""
+
+    def _play():
+        if message:
+            subprocess.run(["say", "-v", "Samantha", message], check=False)
+        else:
+            play_done_cue(async_play=False)
+
+    if async_play:
+        threading.Thread(target=_play, daemon=True).start()
+    else:
+        _play()
