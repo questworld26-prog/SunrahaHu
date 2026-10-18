@@ -155,15 +155,13 @@ def test_app_auto_silence(mock_transcriber_cls, mock_recorder_cls):
 @patch("sunrahahu.app.AudioRecorder")
 @patch("sunrahahu.app.Transcriber")
 def test_app_auto_timeout(mock_transcriber_cls, mock_recorder_cls):
-    mock_status_cb = MagicMock()
-    app = SunrahaHuApp(on_status_change=mock_status_cb)
+    app = SunrahaHuApp()
     app.is_recording = True
+    app.stop_and_transcribe = MagicMock()
 
     app._on_auto_timeout()
 
-    assert not app.is_recording
-    app.recorder.stop.assert_called_once()
-    mock_status_cb.assert_called_with("idle")
+    app.stop_and_transcribe.assert_called_once()
 
 
 def test_app_set_auto_stop():

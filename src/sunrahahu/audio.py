@@ -13,10 +13,10 @@ class AudioRecorder:
         sample_rate: int = 16000,
         channels: int = 1,
         vad_enabled: bool = True,
-        speech_threshold: float = 0.012,
-        silence_threshold: float = 0.006,
+        speech_threshold: float = 0.0035,
+        silence_threshold: float = 0.0025,
         silence_duration: float = 1.3,
-        min_speech_duration: float = 0.25,
+        min_speech_duration: float = 0.08,
         max_initial_silence: float = 6.0,
         on_silence_detected=None,
         on_initial_timeout=None,
@@ -43,7 +43,7 @@ class AudioRecorder:
 
         # VAD state tracking
         self.has_speech_started = False
-        self.consecutive_speech_frames = 0
+        self.speech_frames = 0
         self.silence_frames = 0
         self.initial_silence_frames = 0
         self.vad_triggered = False
@@ -54,17 +54,18 @@ class AudioRecorder:
 
         if not self.has_speech_started:
             if rms >= self.speech_threshold:
-                self.consecutive_speech_frames += frames
-                if self.consecutive_speech_frames >= self.min_speech_frames:
+                self.speech_frames += frames
+                if self.speech_frames >= self.min_speech_frames:
                     self.has_speech_started = True
                     self.silence_frames = 0
             else:
-                self.consecutive_speech_frames = 0
                 self.initial_silence_frames += frames
                 if self.initial_silence_frames >= self.max_initial_silence_frames:
                     self.vad_triggered = True
-                    if self.on_initial_timeout:
-                        threading.Thread(target=self.on_initial_timeout, daemon=True).start()
+                    # If grace period expires, trigger transcription so quiet speech is never discarded
+                    cb = self.on_initial_timeout or self.on_silence_detected
+                    if cb:
+                        threading.Thread(target=cb, daemon=True).start()
         else:
             if rms < self.silence_threshold:
                 self.silence_frames += frames

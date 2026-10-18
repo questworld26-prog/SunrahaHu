@@ -44,15 +44,13 @@ class SunrahaHuApp:
             self.lock.release()
 
     def _on_auto_timeout(self):
-        """Triggered if no speech was detected within the initial grace period."""
+        """Triggered if grace period elapsed; transcribes recorded audio so speech is never lost."""
         if not self.lock.acquire(blocking=False):
             return
         try:
             if self.is_recording and not self.is_transcribing:
-                print("[SunrahaHu] No speech detected in grace period. Aborting...")
-                self.is_recording = False
-                self.set_status("idle")
-                self.recorder.stop()
+                print("[SunrahaHu] Grace period elapsed. Stopping & transcribing...")
+                self.stop_and_transcribe()
         finally:
             self.lock.release()
 
