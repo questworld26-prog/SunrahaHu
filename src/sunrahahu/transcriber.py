@@ -19,10 +19,13 @@ COMMON_HALLUCINATIONS = {
     "!",
 }
 
-# Prompt steering Whisper to render mixed Hindi in Roman English alphabet (Hinglish)
-HINGLISH_PROMPT = (
-    "Yeh audio Hinglish mein hai, please write in Roman English alphabet like: "
-    "kya haal hai, main theek hoon, meeting kab hai, lets do this."
+# Steering prompt for multilingual Romanized script (English + Hindi + Bengali)
+# Forces phonetic transcription using English Latin characters without translating
+ROMAN_PHONETIC_PROMPT = (
+    "Transcribe exactly what is spoken using the English Latin alphabet (phonetic Roman script) "
+    "without translating. Support mixed English, Hindi, and Bengali: "
+    "e.g. 'Ami bhalo achi, tumi kemon acho? Main theek hoon, lets start the work. "
+    "Haan bhai kal dekhte hai, ei project ta khub bhalo.'"
 )
 
 
@@ -38,7 +41,7 @@ class Transcriber:
     ) -> str:
         """
         Transcribes 16kHz float32 audio buffer into text.
-        Includes silence detection, audio normalization, Hinglish steering, and hallucination filtering.
+        Includes silence detection, audio normalization, Roman phonetic steering, and hallucination filtering.
         """
         if audio_data is None or len(audio_data) == 0:
             return ""
@@ -62,10 +65,11 @@ class Transcriber:
             "no_speech_threshold": 0.6,
         }
 
-        # Language handling & Hinglish mode
-        if language == "hinglish":
+        # Language handling:
+        # 'roman' or 'hinglish': Steers Whisper to transcribe English + Hindi + Bengali phonetically in English alphabet
+        if language in ("roman", "hinglish"):
             kwargs["language"] = "en"
-            kwargs["initial_prompt"] = HINGLISH_PROMPT
+            kwargs["initial_prompt"] = ROMAN_PHONETIC_PROMPT
         elif language:
             kwargs["language"] = language
 

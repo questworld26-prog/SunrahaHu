@@ -21,18 +21,18 @@ TEST_MESSAGES = [
     "আমি এটা বাংলায় পরীক্ষা করছি।",
     # 5. Hindi native script (4s)
     "नमस्ते, यह पाँचवाँ टेस्ट संदेश है।",
-    # 6. Hinglish: Mixed Hindi in English alphabet (6s)
+    # 6. Hinglish/Roman script: Mixed Hindi + English (6s)
     "Haan bhai main kal meeting mein yeh discuss karunga, lets make sure all tests pass.",
-    # 7. Another Hinglish conversational phrase (3s)
-    "Kya haal hai sab theek thaak chal raha hai?",
+    # 7. Trilingual Roman script: Bengali + Hindi + English without translation (5s)
+    "Ami theek achi, aap batao what is the plan? Ei project ta khub bhalo chal raha hai.",
     # 8. Very long paragraph (12s)
     "This is a significantly longer dictation passage designed to stress test the buffer allocation, "
     "audio frame concatenation, and memory deallocation pipelines to guarantee that extended speech "
     "never causes a buffer overrun or memory leak.",
     # 9. Complex Bengali sentence (5s)
     "আজকের আবহাওয়া খুব সুন্দর এবং রোদ উঠেছে।",
-    # 10. Final Hinglish closing (4s)
-    "Chalo final tenth message stress test completed successfully.",
+    # 10. Trilingual Roman closing (4s)
+    "Chalo final tenth message, ami ready for release, let's ship it.",
 ]
 
 # Variable audio lengths in seconds corresponding to each message
@@ -53,8 +53,8 @@ def test_transcriber_stress_variable_length_and_hinglish():
         sample_count = int(16000 * duration_sec)
         variable_audio = np.sin(np.linspace(0, 100 * duration_sec, sample_count), dtype=np.float32) * 0.1
 
-        # Use Hinglish mode for indices 5, 6, 9
-        lang = "hinglish" if "Hinglish" in str(msg) or "bhai" in str(msg) or "Chalo" in str(msg) else None
+        # Use Roman script mode for indices with Hinglish/Bengali in English script
+        lang = "roman" if ("bhai" in str(msg) or "Ami" in str(msg) or "Chalo" in str(msg)) else None
 
         start = time.perf_counter()
         with patch("mlx_whisper.transcribe") as mock_mlx:
@@ -62,11 +62,13 @@ def test_transcriber_stress_variable_length_and_hinglish():
             result = transcriber.transcribe(variable_audio, language=lang)
             assert result == msg
 
-            # Verify Hinglish steered with English language and prompt
-            if lang == "hinglish":
+            # Verify Roman script steered with English language and phonetic prompt
+            if lang == "roman":
                 _, kwargs = mock_mlx.call_args
                 assert kwargs["language"] == "en"
                 assert "initial_prompt" in kwargs
+                assert "Bengali" in kwargs["initial_prompt"]
+                assert "Hindi" in kwargs["initial_prompt"]
 
         elapsed = time.perf_counter() - start
         durations.append(elapsed)
