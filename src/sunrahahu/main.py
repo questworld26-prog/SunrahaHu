@@ -34,8 +34,6 @@ class SunrahaHuMenuBar(rumps.App):
             None,  # Separator
             self.lang_menu,
             None,  # Separator
-            rumps.MenuItem("📋 Copy Last Transcription", callback=self.copy_last_transcription),
-            None,
             rumps.MenuItem("Say 'सुन रहा हूँ' test", callback=self.test_voice),
             None,
         ]
@@ -94,32 +92,6 @@ class SunrahaHuMenuBar(rumps.App):
             self.lang_auto.title = "✓ Auto Detect"
 
         self.status_item.title = f"Status: Ready (Language: {name})"
-
-    def copy_last_transcription(self, _):
-        """Copies the most recently dictated text onto the system pasteboard."""
-        text = self.app_core.last_transcribed_text
-        if text:
-            import AppKit
-
-            pb = AppKit.NSPasteboard.generalPasteboard()
-            pb.clearContents()
-            pb.setString_forType_(text, AppKit.NSPasteboardTypeString)
-            self._send_notification("SunrahaHu", "Copied to Clipboard", f"'{text[:40]}...'")
-        else:
-            self._send_notification("SunrahaHu", "Clipboard Empty", "No recent dictation found yet.")
-
-    def _send_notification(self, title: str, subtitle: str, message: str):
-        """Dispatches notification safely, falling back to osascript if app bundle lacks Info.plist."""
-        try:
-            rumps.notification(title, subtitle, message)
-        except Exception:
-            try:
-                import subprocess
-
-                apple_script = f'display notification "{message}" with title "{title}" subtitle "{subtitle}"'
-                subprocess.run(["osascript", "-e", apple_script], check=False)
-            except Exception as e:
-                print(f"[SunrahaHu] Notification error: {e}")
 
     def test_voice(self, _):
         from sunrahahu.feedback import play_listening_cue
