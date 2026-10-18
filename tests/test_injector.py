@@ -24,7 +24,7 @@ def test_type_unicode_string(mock_create_event, mock_set_unicode, mock_post_even
 @patch("sunrahahu.injector.type_unicode_string")
 def test_inject_text_direct_default(mock_type):
     inject_text_to_active_window("New transcribed text")
-    mock_type.assert_called_once_with("New transcribed text")
+    mock_type.assert_called_once_with("New transcribed text ")
 
 
 @patch("sunrahahu.injector.post_cmd_v")
@@ -42,10 +42,10 @@ def test_inject_text_clipboard_flow(
     # 1. Backed up old clipboard
     mock_pb.stringForType_.assert_called_once()
 
-    # 2. Cleared and set new transcribed text
+    # 2. Cleared and set new transcribed text with trailing space
     mock_pb.clearContents.assert_any_call()
     assert any(
-        call.args and call.args[0] == "New transcribed dictation" for call in mock_pb.setString_forType_.call_args_list
+        call.args and call.args[0] == "New transcribed dictation " for call in mock_pb.setString_forType_.call_args_list
     )
 
     # 3. Simulated Cmd+V keyboard events

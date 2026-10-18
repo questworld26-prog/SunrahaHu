@@ -30,12 +30,17 @@ def test_transcriber_successful(mock_mlx_transcribe):
     mock_mlx_transcribe.return_value = {"text": "  नमस्ते, यह एक टेस्ट है।  "}
     transcriber = Transcriber()
 
-    # 1 second of audio
-    audio = np.zeros(16000, dtype=np.float32)
+    # 1 second of non-silent audio
+    audio = np.sin(np.linspace(0, 100, 16000), dtype=np.float32) * 0.1
     result = transcriber.transcribe(audio, language="hi")
 
     assert result == "नमस्ते, यह एक टेस्ट है।"
-    mock_mlx_transcribe.assert_called_once_with(audio, path_or_hf_repo=MODEL_NAME, task="transcribe", language="hi")
+    assert mock_mlx_transcribe.call_count == 1
+    _, kwargs = mock_mlx_transcribe.call_args
+    assert kwargs["path_or_hf_repo"] == MODEL_NAME
+    assert kwargs["task"] == "transcribe"
+    assert kwargs["language"] == "hi"
+    assert kwargs["no_speech_threshold"] == 0.6
 
 
 @patch("mlx_whisper.transcribe")
@@ -43,9 +48,13 @@ def test_transcriber_translate(mock_mlx_transcribe):
     mock_mlx_transcribe.return_value = {"text": "Hello, this is a test."}
     transcriber = Transcriber()
 
-    # 1 second of audio
-    audio = np.zeros(16000, dtype=np.float32)
+    # 1 second of non-silent audio
+    audio = np.sin(np.linspace(0, 100, 16000), dtype=np.float32) * 0.1
     result = transcriber.transcribe(audio, task="translate")
 
     assert result == "Hello, this is a test."
-    mock_mlx_transcribe.assert_called_once_with(audio, path_or_hf_repo=MODEL_NAME, task="translate")
+    assert mock_mlx_transcribe.call_count == 1
+    _, kwargs = mock_mlx_transcribe.call_args
+    assert kwargs["path_or_hf_repo"] == MODEL_NAME
+    assert kwargs["task"] == "translate"
+    assert kwargs["no_speech_threshold"] == 0.6

@@ -46,16 +46,27 @@ class SunrahaHuApp:
         print("\n[SunrahaHu] Triggered: सुन रहा हूँ...")
         self.is_recording = True
         self.set_status("recording")
-        # Play cue synchronously (approx ~0.8s) so mic doesn't capture the app's own prompt
+        # Play cue synchronously so mic doesn't capture the app's own prompt
         play_listening_cue(async_play=False)
-        self.recorder.start()
+        try:
+            self.recorder.start()
+        except Exception as e:
+            print(f"[SunrahaHu Error] Microphone start failed: {e}")
+            self.is_recording = False
+            self.set_status("idle")
 
     def stop_and_transcribe(self):
         print("[SunrahaHu] Stopping recording & transcribing...")
         self.is_recording = False
         self.is_transcribing = True
         self.set_status("transcribing")
-        audio_data = self.recorder.stop()
+        try:
+            audio_data = self.recorder.stop()
+        except Exception as e:
+            print(f"[SunrahaHu Error] Stopping recorder failed: {e}")
+            self.is_transcribing = False
+            self.set_status("idle")
+            return
 
         def _worker():
             try:
@@ -68,7 +79,7 @@ class SunrahaHuApp:
                     inject_text_to_active_window(text)
                     play_done_cue(async_play=True)
                 else:
-                    print("[SunrahaHu] No speech detected.")
+                    print("[SunrahaHu] No speech detected or below silence threshold.")
             except Exception as e:
                 print(f"[SunrahaHu] Transcription/Injection error: {e}")
             finally:

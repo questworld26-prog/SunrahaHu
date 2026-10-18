@@ -32,8 +32,8 @@ def test_transcriber_stress_10_sequential_runs():
     """
     transcriber = Transcriber()
 
-    # Pre-generate 1-second dummy audio waveform (16000 samples @ 16kHz)
-    dummy_audio = np.zeros(16000, dtype=np.float32)
+    # Pre-generate 1-second non-silent dummy audio waveform
+    dummy_audio = np.sin(np.linspace(0, 100, 16000), dtype=np.float32) * 0.1
 
     durations = []
     for i in range(10):
@@ -72,7 +72,7 @@ def test_injector_stress_10_sequential_messages(mock_type):
     total_time = time.perf_counter() - start_time
 
     assert len(dispatched) == 10
-    assert dispatched == TEST_MESSAGES
+    assert dispatched == [f"{m} " for m in TEST_MESSAGES]
     # 10 direct dispatches should complete almost instantaneously
     assert total_time < 0.2
 

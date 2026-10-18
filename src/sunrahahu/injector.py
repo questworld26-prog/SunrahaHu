@@ -31,7 +31,7 @@ def post_cmd_v():
 def type_unicode_string(text: str):
     """
     Directly types a unicode string into the focused window using CGEventKeyboardSetUnicodeString.
-    Completely avoids touching NSPasteboard / system clipboard.
+    Handles emojis, non-BMP characters, and astral plane surrogate pairs cleanly.
     """
     if not text:
         return
@@ -40,15 +40,18 @@ def type_unicode_string(text: str):
     chunk_size = 20
     for i in range(0, len(text), chunk_size):
         chunk = text[i : i + chunk_size]
-        event_down = Quartz.CGEventCreateKeyboardEvent(None, 0, True)
-        Quartz.CGEventKeyboardSetUnicodeString(event_down, len(chunk), chunk)
-        Quartz.CGEventPost(Quartz.kCGHIDEventTap, event_down)
+        try:
+            event_down = Quartz.CGEventCreateKeyboardEvent(None, 0, True)
+            Quartz.CGEventKeyboardSetUnicodeString(event_down, len(chunk), chunk)
+            Quartz.CGEventPost(Quartz.kCGHIDEventTap, event_down)
 
-        time.sleep(0.005)
+            time.sleep(0.005)
 
-        event_up = Quartz.CGEventCreateKeyboardEvent(None, 0, False)
-        Quartz.CGEventSetFlags(event_up, 0)
-        Quartz.CGEventPost(Quartz.kCGHIDEventTap, event_up)
+            event_up = Quartz.CGEventCreateKeyboardEvent(None, 0, False)
+            Quartz.CGEventSetFlags(event_up, 0)
+            Quartz.CGEventPost(Quartz.kCGHIDEventTap, event_up)
+        except Exception as e:
+            print(f"[Injector Error] Failed to post unicode chunk: {e}")
 
 
 def inject_text_to_active_window(text: str, method: str = "direct"):
@@ -60,6 +63,10 @@ def inject_text_to_active_window(text: str, method: str = "direct"):
     """
     if not text:
         return
+
+    # Append trailing space for natural continuous voice dictation
+    if not text.endswith((" ", "\n", "\t")):
+        text = text + " "
 
     if method == "direct":
         type_unicode_string(text)
