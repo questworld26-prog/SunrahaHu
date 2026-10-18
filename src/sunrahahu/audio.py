@@ -6,6 +6,8 @@ import threading
 import numpy as np
 import sounddevice as sd
 
+from sunrahahu.vad import SileroVAD
+
 
 class AudioRecorder:
     def __init__(
@@ -13,10 +15,9 @@ class AudioRecorder:
         sample_rate: int = 16000,
         channels: int = 1,
         vad_enabled: bool = True,
-        speech_threshold: float = 0.0035,
-        silence_threshold: float = 0.0025,
+        speech_prob_threshold: float = 0.5,
         silence_duration: float = 1.3,
-        min_speech_duration: float = 0.08,
+        min_speech_duration: float = 0.15,
         max_initial_silence: float = 6.0,
         on_silence_detected=None,
         on_initial_timeout=None,
@@ -24,8 +25,7 @@ class AudioRecorder:
         self.sample_rate = sample_rate
         self.channels = channels
         self.vad_enabled = vad_enabled
-        self.speech_threshold = speech_threshold
-        self.silence_threshold = silence_threshold
+        self.speech_prob_threshold = speech_prob_threshold
         self.silence_duration = silence_duration
         self.min_speech_duration = min_speech_duration
         self.max_initial_silence = max_initial_silence
@@ -41,40 +41,60 @@ class AudioRecorder:
         self.stream = None
         self.is_recording = False
 
+        # Silero VAD neural network instance
+        self.vad = None
+        try:
+            self.vad = SileroVAD(threshold=speech_prob_threshold, sample_rate=sample_rate)
+        except Exception as e:
+            print(f"[AudioRecorder Warning] Failed to initialize SileroVAD: {e}")
+
         # VAD state tracking
+        self.vad_buffer = np.array([], dtype=np.float32)
         self.has_speech_started = False
         self.speech_frames = 0
         self.silence_frames = 0
         self.initial_silence_frames = 0
         self.vad_triggered = False
 
-    def _process_vad(self, indata, frames):
-        """Process incoming audio frame with RMS energy thresholding for silence detection."""
-        rms = float(np.sqrt(np.mean(np.square(indata))))
+    def _process_vad_chunk(self, chunk: np.ndarray):
+        """Process a 512-sample (32ms) window through Silero VAD."""
+        is_speech, _prob = self.vad.is_speech(chunk)
 
         if not self.has_speech_started:
-            if rms >= self.speech_threshold:
-                self.speech_frames += frames
+            if is_speech:
+                self.speech_frames += 512
                 if self.speech_frames >= self.min_speech_frames:
                     self.has_speech_started = True
                     self.silence_frames = 0
             else:
-                self.initial_silence_frames += frames
+                self.initial_silence_frames += 512
                 if self.initial_silence_frames >= self.max_initial_silence_frames:
                     self.vad_triggered = True
-                    # If grace period expires, trigger transcription so quiet speech is never discarded
                     cb = self.on_initial_timeout or self.on_silence_detected
                     if cb:
                         threading.Thread(target=cb, daemon=True).start()
         else:
-            if rms < self.silence_threshold:
-                self.silence_frames += frames
+            if not is_speech:
+                self.silence_frames += 512
                 if self.silence_frames >= self.silence_duration_frames:
                     self.vad_triggered = True
                     if self.on_silence_detected:
                         threading.Thread(target=self.on_silence_detected, daemon=True).start()
             else:
                 self.silence_frames = 0
+
+    def _process_vad(self, indata):
+        """Buffer incoming audio into 512-sample chunks for Silero VAD evaluation."""
+        if self.vad is None:
+            return
+
+        mono = indata[:, 0] if indata.ndim > 1 else indata
+        self.vad_buffer = np.concatenate([self.vad_buffer, mono.flatten()])
+
+        while len(self.vad_buffer) >= 512 and not self.vad_triggered:
+            chunk = self.vad_buffer[:512]
+            self.vad_buffer = self.vad_buffer[512:]
+            self._process_vad_chunk(chunk)
 
     def _callback(self, indata, frames, time_info, status):
         if not self.is_recording:
@@ -83,13 +103,16 @@ class AudioRecorder:
         self.audio_queue.put(indata.copy())
 
         if self.vad_enabled and not self.vad_triggered:
-            self._process_vad(indata, frames)
+            self._process_vad(indata)
 
     def start(self):
         """Start capturing audio cleanly with input device validation."""
         # Reset VAD tracking counters
+        if self.vad:
+            self.vad.reset()
+        self.vad_buffer = np.array([], dtype=np.float32)
         self.has_speech_started = False
-        self.consecutive_speech_frames = 0
+        self.speech_frames = 0
         self.silence_frames = 0
         self.initial_silence_frames = 0
         self.vad_triggered = False

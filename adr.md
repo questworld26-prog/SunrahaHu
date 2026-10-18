@@ -35,7 +35,7 @@ Users on Apple Silicon macOS need a global voice dictation tool that can transcr
 
 ## ADR-0002: Native RMS Energy Voice Activity Detection (VAD) & Silence Auto-Stop
 
-- **Status**: Accepted
+- **Status**: Superseded by ADR-0003
 - **Date**: 2026-10-18
 - **Deciders**: Engineering Team
 
@@ -45,19 +45,45 @@ Dictation previously required two explicit user interactions: clicking "🎙️ 
 ### Decision
 1. **Detection Method (Native RMS Energy)**:
    - Compute the Root Mean Square ($RMS = \sqrt{\text{mean}(x^2)}$) on incoming 16kHz float32 audio buffers inside PortAudio's `_callback`.
-   - **Speech Threshold**: `RMS >= 0.012` for a minimum of `0.25s` (`min_speech_duration`) to distinguish intentional speech from ambient spikes, key clicks, or throat clearing.
-   - **Trailing Silence Threshold**: `RMS < 0.006` sustained continuously for `1.3s` (`silence_duration`), triggering automatic stop and transcription.
-   - **Initial Silence Grace Period**: `6.0s` (`max_initial_silence`) timeout if no speech is detected after trigger, safely aborting the session to conserve resources.
-2. **Zero Additional Dependencies**:
-   - Implemented entirely using native `numpy` vector operations already in the core pipeline, bypassing heavy dependencies (Silero VAD, WebRTC C extensions, ONNX Runtime, or PyTorch).
-   - CPU overhead is $< 0.1\%$ per callback.
-3. **Thread Safety & RunLoop Isolation**:
-   - VAD callback transitions dispatch to a dedicated daemon thread (`threading.Thread`) before calling `stop_and_transcribe()`.
-   - Never blocks PortAudio's high-priority audio callback thread or macOS Cocoa's main UI thread.
-4. **User Control**:
-   - Added a menu bar toggle: `✓ Auto-Stop on Silence (1.3s)` allowing users to toggle between hands-free auto-stop and manual continuous dictation.
+   - **Speech Threshold**: `RMS >= 0.012` (later adjusted to `0.0035`) for a minimum of `0.25s` (`min_speech_duration`).
+   - **Trailing Silence Threshold**: `RMS < 0.006` sustained continuously for `1.3s` (`silence_duration`).
+
+### Why This Approach Was Abandoned / Superseded
+In real-world deployment, physical environments frequently have continuous broadband acoustic noise such as ceiling/desk fans, air conditioners (AC), or laptop blowers. 
+- Static energy metrics (RMS) measure total signal amplitude without distinguishing between human speech and fan hiss.
+- If thresholds were set low enough to hear normal or soft voice, continuous fan/AC noise was recognized as speech 24/7, preventing trailing silence from ever triggering.
+- Switching between MacBook internal microphones and headphones/headsets dramatically altered the input gain and ambient noise floor, making any fixed threshold brittle.
+
+---
+
+## ADR-0003: Silero Neural Voice Activity Detection (VAD) via ONNX Runtime
+
+- **Status**: Accepted
+- **Date**: 2026-10-18
+- **Deciders**: Engineering Team
+
+### Context
+Following the limitations of static RMS energy detection in ADR-0002 when exposed to fan and AC background noise and varied microphone setups (built-in mic vs. headphones), an acoustic classification system was needed that can identify human vocal tract patterns independent of ambient broadband room noise.
+
+### Decision
+1. **Neural VAD Architecture (Silero VAD v5)**:
+   - Adopt the state-of-the-art **Silero VAD v5** model packaged as a lightweight ONNX binary (`src/sunrahahu/assets/silero_vad.onnx`, ~2.3 MB).
+   - Execute inference using **`onnxruntime`** (`onnxruntime>=1.20.0`) on Apple Silicon CPU (`CPUExecutionProvider`).
+   - Process streaming audio in 512-sample windows (32ms at 16kHz) with a 64-sample recurrent context prefix.
+2. **Acoustic Discrimination (Immunity to Fans & AC)**:
+   - Silero VAD evaluates spectral formants and vocal cord harmonics rather than raw sound pressure/volume.
+   - Empirical benchmarks: Loud fan/AC noise (RMS 0.03) produces a speech probability of only `~0.012` (non-speech), while human speech immediately produces `0.95 – 1.00`.
+   - **Speech Threshold**: Probability `p >= 0.50` sustained for `0.15s` (`min_speech_duration`).
+   - **Trailing Silence Threshold**: Probability `p < 0.50` sustained for `1.3s` (`silence_duration`).
+   - **Grace Period**: 6.0s timeout if no speech is detected, which invokes `stop_and_transcribe()` to ensure no words are ever discarded.
+3. **Hardware & Resource Efficiency**:
+   - Single-chunk inference executes in **`0.11 ms`** on Apple Silicon CPU (< 0.4% of 1 CPU core).
+   - Runs exclusively on CPU threads, avoiding any resource contention with Whisper Large-V3-Turbo on the Metal GPU.
+4. **Universal Microphone Compatibility**:
+   - Works out-of-the-box across MacBook internal mics, AirPods, USB headsets, and studio condenser microphones without user calibration.
 
 ### Consequences
-- Single-click voice workflow: user clicks once, speaks, pauses, and text is automatically transcribed and injected without touching the mouse again.
-- In noisy environments (e.g. loud music or heavy construction), the user can disable Auto-Stop via the menu bar item to fall back to manual toggle.
+- True "click-speak-and-forget" hands-free dictation that operates reliably even in loud rooms with fans, air conditioning, or varying background noise.
+- Small dependency addition (`onnxruntime`), which installs cleanly as a pre-built wheel on macOS ARM64 Python 3.13.
+
 

@@ -54,26 +54,26 @@ def test_audio_recorder_empty_stop():
 
 def test_audio_recorder_vad_silence_detection():
     mock_silence_cb = MagicMock()
-    # Configure with small durations for fast test execution
     recorder = AudioRecorder(
         sample_rate=16000,
         channels=1,
         vad_enabled=True,
-        speech_threshold=0.012,
-        silence_threshold=0.006,
         silence_duration=0.1,  # 1600 frames
         min_speech_duration=0.05,  # 800 frames
         on_silence_detected=mock_silence_cb,
     )
     recorder.is_recording = True
+    recorder.vad = MagicMock()
 
-    # 1. Speech frame (RMS ~0.05, 1000 frames)
-    speech_frame = (np.sin(np.linspace(0, 100, 1000)) * 0.05).astype(np.float32).reshape(-1, 1)
-    recorder._callback(speech_frame, 1000, None, None)
+    # 1. Speech chunks (512 samples each, returns is_speech=True)
+    recorder.vad.is_speech.return_value = (True, 0.95)
+    speech_frame = np.ones((1024, 1), dtype=np.float32)
+    recorder._callback(speech_frame, 1024, None, None)
     assert recorder.has_speech_started is True
     mock_silence_cb.assert_not_called()
 
-    # 2. Silence frame under threshold (RMS ~0.001, 1600 frames >= 1600 frames threshold)
+    # 2. Silence chunks (512 samples each, returns is_speech=False)
+    recorder.vad.is_speech.return_value = (False, 0.01)
     with patch("threading.Thread") as mock_thread:
 
         def run_target(target, daemon):
@@ -82,8 +82,8 @@ def test_audio_recorder_vad_silence_detection():
 
         mock_thread.side_effect = run_target
 
-        silence_frame = np.full((1600, 1), 0.001, dtype=np.float32)
-        recorder._callback(silence_frame, 1600, None, None)
+        silence_frame = np.zeros((2048, 1), dtype=np.float32)
+        recorder._callback(silence_frame, 2048, None, None)
 
     mock_silence_cb.assert_called_once()
     assert recorder.vad_triggered is True
@@ -99,6 +99,8 @@ def test_audio_recorder_vad_initial_timeout():
         on_initial_timeout=mock_timeout_cb,
     )
     recorder.is_recording = True
+    recorder.vad = MagicMock()
+    recorder.vad.is_speech.return_value = (False, 0.01)
 
     with patch("threading.Thread") as mock_thread:
 
@@ -108,8 +110,8 @@ def test_audio_recorder_vad_initial_timeout():
 
         mock_thread.side_effect = run_target
 
-        silence_frame = np.full((1600, 1), 0.001, dtype=np.float32)
-        recorder._callback(silence_frame, 1600, None, None)
+        silence_frame = np.zeros((2048, 1), dtype=np.float32)
+        recorder._callback(silence_frame, 2048, None, None)
 
     mock_timeout_cb.assert_called_once()
     assert recorder.vad_triggered is True
@@ -126,11 +128,14 @@ def test_audio_recorder_vad_disabled():
         on_silence_detected=mock_silence_cb,
     )
     recorder.is_recording = True
+    recorder.vad = MagicMock()
+    recorder.vad.is_speech.return_value = (True, 0.95)
 
-    speech_frame = (np.sin(np.linspace(0, 100, 1000)) * 0.05).astype(np.float32).reshape(-1, 1)
-    recorder._callback(speech_frame, 1000, None, None)
+    speech_frame = np.ones((1024, 1), dtype=np.float32)
+    recorder._callback(speech_frame, 1024, None, None)
 
-    silence_frame = np.full((2000, 1), 0.001, dtype=np.float32)
-    recorder._callback(silence_frame, 2000, None, None)
+    recorder.vad.is_speech.return_value = (False, 0.01)
+    silence_frame = np.zeros((2048, 1), dtype=np.float32)
+    recorder._callback(silence_frame, 2048, None, None)
 
     mock_silence_cb.assert_not_called()

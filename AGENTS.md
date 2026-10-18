@@ -64,7 +64,8 @@ SunrahaHu/
 │   ├── hotkey.py       # Global keyboard listener using pynput
 │   ├── injector.py     # Direct macOS Quartz CGEvent Unicode string typing
 │   ├── main.py         # macOS menu bar app (rumps) & language selector
-│   └── transcriber.py  # mlx-whisper integration, RMS silence detection, Roman steering
+│   ├── transcriber.py  # mlx-whisper integration, RMS silence detection, Roman steering
+│   └── vad.py          # Silero VAD v5 ONNX neural voice activity detection
 ├── tests/
 │   ├── test_app.py         # State machine & toggle unit tests
 │   ├── test_audio.py       # Audio recording & buffer concatenation
@@ -73,7 +74,8 @@ SunrahaHu/
 │   ├── test_feedback.py   # Voice cues & fallback speech
 │   ├── test_injector.py   # Direct unicode injection & emoji support
 │   ├── test_stress.py     # 10 sequential messages, variable duration (1s–12s), Roman script
-│   └── test_transcriber.py # Hallucination filtering, silent frames, Roman phonetic mode
+│   ├── test_transcriber.py # Hallucination filtering, silent frames, Roman phonetic mode
+│   └── test_vad.py         # Silero neural VAD chunk, fan noise, and speech tests
 ├── adr.md              # Architectural Decision Records
 ├── release.md          # Chronological release notes (latest on top)
 ├── pyproject.toml      # Project dependencies and tool configs (Ruff, Pytest)
