@@ -32,15 +32,25 @@ class SunrahaHuApp:
                 print(f"[Error updating status]: {e}")
 
     def toggle_recording(self):
-        """Toggle recording on/off (press once to start, press again to finish & paste)."""
-        with self.lock:
+        """
+        Toggle recording on/off (press once to start, press again to finish & paste).
+        Uses non-blocking lock to eliminate hotkey event queue deadlocks.
+        """
+        # If hotkey is bouncing or already busy, skip duplicate event
+        if not self.lock.acquire(blocking=False):
+            print("[SunrahaHu] Hotkey debounce: event already in progress.")
+            return
+
+        try:
             if not self.is_recording:
                 if self.is_transcribing:
-                    print("Still transcribing previous audio, please wait...")
+                    print("[SunrahaHu] Still transcribing previous audio, please wait...")
                     return
                 self.start_recording()
             else:
                 self.stop_and_transcribe()
+        finally:
+            self.lock.release()
 
     def start_recording(self):
         print("\n[SunrahaHu] Triggered: सुन रहा हूँ...")
