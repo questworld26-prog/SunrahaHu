@@ -22,6 +22,7 @@ def test_app_start_recording(mock_transcriber_cls, mock_recorder_cls, mock_cue):
     mock_status_callback.assert_called_with("recording")
 
 
+@patch("sunrahahu.app.play_typing_cue")
 @patch("sunrahahu.app.play_done_cue")
 @patch("sunrahahu.app.inject_text_to_active_window")
 @patch("sunrahahu.app.play_listening_cue")
@@ -33,6 +34,7 @@ def test_app_stop_and_transcribe(
     mock_listening_cue,
     mock_inject,
     mock_done_cue,
+    mock_typing_cue,
 ):
     mock_status_callback = MagicMock()
     app = SunrahaHuApp(on_status_change=mock_status_callback)
@@ -58,12 +60,14 @@ def test_app_stop_and_transcribe(
 
     app.recorder.stop.assert_called_once()
     app.transcriber.transcribe.assert_called_once_with(fake_audio, language=None)
+    mock_typing_cue.assert_called_once_with(async_play=True)
     mock_inject.assert_called_once_with("Hello World")
     mock_done_cue.assert_called_once_with(async_play=True)
     mock_status_callback.assert_any_call("transcribing")
     mock_status_callback.assert_any_call("idle")
 
 
+@patch("sunrahahu.app.play_typing_cue")
 @patch("sunrahahu.app.play_done_cue")
 @patch("sunrahahu.app.inject_text_to_active_window")
 @patch("sunrahahu.app.play_listening_cue")
@@ -75,6 +79,7 @@ def test_app_language_selection(
     mock_listening_cue,
     mock_inject,
     mock_done_cue,
+    mock_typing_cue,
 ):
     app = SunrahaHuApp()
     app.set_language("bn")

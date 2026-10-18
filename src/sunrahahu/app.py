@@ -4,7 +4,7 @@ import threading
 import time
 
 from sunrahahu.audio import AudioRecorder
-from sunrahahu.feedback import play_done_cue, play_listening_cue
+from sunrahahu.feedback import play_done_cue, play_listening_cue, play_typing_cue
 from sunrahahu.injector import inject_text_to_active_window
 from sunrahahu.transcriber import Transcriber
 
@@ -60,6 +60,8 @@ class SunrahaHuApp:
         self.is_recording = False
         self.is_transcribing = True
         self.set_status("transcribing")
+        # Announce "Typing" voice cue
+        play_typing_cue(async_play=True)
         try:
             audio_data = self.recorder.stop()
         except Exception as e:

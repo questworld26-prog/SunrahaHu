@@ -78,10 +78,11 @@ def test_injector_stress_10_sequential_messages(mock_type):
 
 
 @pytest.mark.stress
+@patch("sunrahahu.app.play_typing_cue")
 @patch("sunrahahu.app.play_done_cue")
 @patch("sunrahahu.app.play_listening_cue")
 @patch("sunrahahu.app.inject_text_to_active_window")
-def test_app_orchestrator_stress_10_cycles(mock_inject, mock_listening_cue, mock_done_cue):
+def test_app_orchestrator_stress_10_cycles(mock_inject, mock_listening_cue, mock_done_cue, mock_typing_cue):
     """
     End-to-end stress test simulating 10 back-to-back toggle recording & transcription cycles.
     Verifies state transitions (idle -> recording -> transcribing -> idle) remain consistent.

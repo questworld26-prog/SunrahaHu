@@ -4,18 +4,36 @@ import os
 import subprocess
 import threading
 
-AUDIO_FILE = os.path.join(os.path.dirname(__file__), "assets", "sun_raha_hu.m4a")
+AUDIO_DIR = os.path.join(os.path.dirname(__file__), "assets")
+SUN_RAHA_HU_AUDIO = os.path.join(AUDIO_DIR, "sun_raha_hu.m4a")
+TYPING_AUDIO = os.path.join(AUDIO_DIR, "typing.m4a")
 
 
 def play_listening_cue(async_play: bool = True):
-    """Play the 'सुन रहा हूँ' voice cue."""
+    """Play the 'सुन रहा हूँ' voice cue when recording starts."""
 
     def _play():
-        if os.path.exists(AUDIO_FILE):
-            subprocess.run(["afplay", AUDIO_FILE], check=False)
+        if os.path.exists(SUN_RAHA_HU_AUDIO):
+            subprocess.run(["afplay", SUN_RAHA_HU_AUDIO], check=False)
         else:
             # Fallback to macOS say with Lekha voice
             subprocess.run(["say", "-v", "Lekha", "सुन रहा हूँ"], check=False)
+
+    if async_play:
+        threading.Thread(target=_play, daemon=True).start()
+    else:
+        _play()
+
+
+def play_typing_cue(async_play: bool = True):
+    """Play the 'Typing' voice cue when recording stops and transcription/typing starts."""
+
+    def _play():
+        if os.path.exists(TYPING_AUDIO):
+            subprocess.run(["afplay", TYPING_AUDIO], check=False)
+        else:
+            # Fallback to macOS say with Samantha voice
+            subprocess.run(["say", "-v", "Samantha", "Typing"], check=False)
 
     if async_play:
         threading.Thread(target=_play, daemon=True).start()
