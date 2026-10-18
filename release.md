@@ -1,5 +1,23 @@
 # Releases
 
+## [1.1.0] - 2026-10-18
+
+### Summary
+Added **Native RMS Voice Activity Detection (VAD) & Silence Auto-Stop**. Users no longer need to click "Stop Recording" — SunrahaHu automatically detects when you finish speaking, stops recording after **1.3 seconds of silence**, and immediately starts transcription and text injection or command execution.
+
+### Highlights
+- **Hands-Free Dictation ("Click once, speak, and forget")**:
+  - Automatically transitions from recording to transcribing upon detecting 1.3s of trailing silence.
+  - Zero extra dependencies: powered by native `numpy` Root Mean Square (RMS) energy thresholding (< 0.1% CPU).
+  - Speech threshold (`RMS >= 0.012`, `min_duration=0.25s`) prevents premature triggers from keyboard clicks, coughing, or ambient noise.
+  - Initial 6.0s grace period automatically aborts idle sessions if triggered unintentionally.
+- **Menu Bar Control**:
+  - Added `✓ Auto-Stop on Silence (1.3s)` menu item to toggle between hands-free auto-stop and manual continuous dictation.
+- **Architectural Documentation**:
+  - Documented design decisions, thresholds, and performance metrics in [ADR-0002](file:///Users/prithis/QuestWorld/SunrahaHu/adr.md).
+- **Test Coverage**:
+  - Added full test suite coverage for VAD speech transitions, trailing silence detection, initial timeout aborts, and menu toggles (104 tests passing).
+
 ## [1.0.0] - 2026-10-18
 
 ### Summary

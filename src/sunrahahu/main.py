@@ -14,6 +14,7 @@ class SunrahaHuMenuBar(rumps.App):
         # Menu items
         self.trigger_item = rumps.MenuItem("🎙️ Dictate (Toggle)", callback=self.manual_trigger)
         self.status_item = rumps.MenuItem("Status: Ready (Language: Auto)", callback=None)
+        self.auto_stop_item = rumps.MenuItem("✓ Auto-Stop on Silence (1.3s)", callback=self.toggle_auto_stop)
 
         # Language selection submenu
         self.lang_menu = rumps.MenuItem("🌐 Language")
@@ -30,6 +31,7 @@ class SunrahaHuMenuBar(rumps.App):
             self.trigger_item,
             self.status_item,
             None,  # Separator
+            self.auto_stop_item,
             self.lang_menu,
             None,  # Separator
             rumps.MenuItem("Say 'सुन रहा हूँ' test", callback=self.test_voice),
@@ -58,6 +60,11 @@ class SunrahaHuMenuBar(rumps.App):
 
     def manual_trigger(self, _):
         threading.Thread(target=self.app_core.toggle_recording, daemon=True).start()
+
+    def toggle_auto_stop(self, _):
+        enabled = not self.app_core.auto_stop_enabled
+        self.app_core.set_auto_stop(enabled)
+        self.auto_stop_item.title = "✓ Auto-Stop on Silence (1.3s)" if enabled else "  Auto-Stop on Silence (1.3s)"
 
     def select_language(self, lang_code, sender):
         self.app_core.set_language(lang_code)

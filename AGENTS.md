@@ -12,9 +12,9 @@ Instructions, architecture guidelines, and operational constraints for AI agents
 1. **Trigger**: User clicks **"🎙️ Dictate (Toggle)"** in the macOS menu bar.
 2. **Audio Cue**: Speaks **"सुन रहा हूँ"** synchronously *before* opening the microphone to avoid speaker audio bleed.
 3. **Capture**: Records microphone audio at 16kHz float32 mono via `sounddevice`.
-4. **Second Press**: User clicks **"⏹️ Stop Recording"** in the menu bar. App announces **"Typing"** voice cue.
+4. **Auto-Stop or Second Press**: Native RMS VAD automatically detects 1.3s of trailing silence and stops recording (or user clicks **"⏹️ Stop Recording"**). App announces **"Typing"** voice cue.
 5. **Transcription**: Audio buffer is transcribed using `mlx-whisper` on Apple Silicon Metal GPU.
-6. **Injection**: Text is typed directly into whichever application window currently has focus via `Quartz.CGEventKeyboardSetUnicodeString` without touching the clipboard.
+6. **Injection / Command**: Text is typed directly into the focused window via `Quartz.CGEventKeyboardSetUnicodeString`, or routed to Jarvis commands.
 
 ---
 

@@ -12,7 +12,12 @@ from sunrahahu.transcriber import Transcriber
 
 class SunrahaHuApp:
     def __init__(self, on_status_change=None):
-        self.recorder = AudioRecorder()
+        self.auto_stop_enabled = True
+        self.recorder = AudioRecorder(
+            vad_enabled=self.auto_stop_enabled,
+            on_silence_detected=self._on_auto_silence,
+            on_initial_timeout=self._on_auto_timeout,
+        )
         self.transcriber = Transcriber()
         self.on_status_change = on_status_change
         self.language = None  # None = Auto Detect, or 'bn', 'hi', 'en', 'roman'
@@ -20,6 +25,36 @@ class SunrahaHuApp:
         self.is_transcribing = False
         self.last_transcribed_text = ""
         self.lock = threading.Lock()
+
+    def set_auto_stop(self, enabled: bool):
+        """Enable or disable VAD auto-stop on silence."""
+        self.auto_stop_enabled = enabled
+        self.recorder.vad_enabled = enabled
+        print(f"[SunrahaHu] Auto-stop on silence set to: {'Enabled (1.3s)' if enabled else 'Disabled'}")
+
+    def _on_auto_silence(self):
+        """Triggered automatically when trailing silence is detected after speech."""
+        if not self.lock.acquire(blocking=False):
+            return
+        try:
+            if self.is_recording and not self.is_transcribing:
+                print("[SunrahaHu] Silence detected (1.3s). Auto-stopping...")
+                self.stop_and_transcribe()
+        finally:
+            self.lock.release()
+
+    def _on_auto_timeout(self):
+        """Triggered if no speech was detected within the initial grace period."""
+        if not self.lock.acquire(blocking=False):
+            return
+        try:
+            if self.is_recording and not self.is_transcribing:
+                print("[SunrahaHu] No speech detected in grace period. Aborting...")
+                self.is_recording = False
+                self.set_status("idle")
+                self.recorder.stop()
+        finally:
+            self.lock.release()
 
     def set_language(self, language: str = None):
         """Set language: None for Auto-detect, or 'bn', 'hi', 'en', 'roman'."""

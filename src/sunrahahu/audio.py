@@ -8,19 +8,91 @@ import sounddevice as sd
 
 
 class AudioRecorder:
-    def __init__(self, sample_rate: int = 16000, channels: int = 1):
+    def __init__(
+        self,
+        sample_rate: int = 16000,
+        channels: int = 1,
+        vad_enabled: bool = True,
+        speech_threshold: float = 0.012,
+        silence_threshold: float = 0.006,
+        silence_duration: float = 1.3,
+        min_speech_duration: float = 0.25,
+        max_initial_silence: float = 6.0,
+        on_silence_detected=None,
+        on_initial_timeout=None,
+    ):
         self.sample_rate = sample_rate
         self.channels = channels
+        self.vad_enabled = vad_enabled
+        self.speech_threshold = speech_threshold
+        self.silence_threshold = silence_threshold
+        self.silence_duration = silence_duration
+        self.min_speech_duration = min_speech_duration
+        self.max_initial_silence = max_initial_silence
+
+        self.silence_duration_frames = int(silence_duration * sample_rate)
+        self.min_speech_frames = int(min_speech_duration * sample_rate)
+        self.max_initial_silence_frames = int(max_initial_silence * sample_rate)
+
+        self.on_silence_detected = on_silence_detected
+        self.on_initial_timeout = on_initial_timeout
+
         self.audio_queue = queue.Queue()
         self.stream = None
         self.is_recording = False
 
+        # VAD state tracking
+        self.has_speech_started = False
+        self.consecutive_speech_frames = 0
+        self.silence_frames = 0
+        self.initial_silence_frames = 0
+        self.vad_triggered = False
+
+    def _process_vad(self, indata, frames):
+        """Process incoming audio frame with RMS energy thresholding for silence detection."""
+        rms = float(np.sqrt(np.mean(np.square(indata))))
+
+        if not self.has_speech_started:
+            if rms >= self.speech_threshold:
+                self.consecutive_speech_frames += frames
+                if self.consecutive_speech_frames >= self.min_speech_frames:
+                    self.has_speech_started = True
+                    self.silence_frames = 0
+            else:
+                self.consecutive_speech_frames = 0
+                self.initial_silence_frames += frames
+                if self.initial_silence_frames >= self.max_initial_silence_frames:
+                    self.vad_triggered = True
+                    if self.on_initial_timeout:
+                        threading.Thread(target=self.on_initial_timeout, daemon=True).start()
+        else:
+            if rms < self.silence_threshold:
+                self.silence_frames += frames
+                if self.silence_frames >= self.silence_duration_frames:
+                    self.vad_triggered = True
+                    if self.on_silence_detected:
+                        threading.Thread(target=self.on_silence_detected, daemon=True).start()
+            else:
+                self.silence_frames = 0
+
     def _callback(self, indata, frames, time_info, status):
-        if self.is_recording:
-            self.audio_queue.put(indata.copy())
+        if not self.is_recording:
+            return
+
+        self.audio_queue.put(indata.copy())
+
+        if self.vad_enabled and not self.vad_triggered:
+            self._process_vad(indata, frames)
 
     def start(self):
         """Start capturing audio cleanly with input device validation."""
+        # Reset VAD tracking counters
+        self.has_speech_started = False
+        self.consecutive_speech_frames = 0
+        self.silence_frames = 0
+        self.initial_silence_frames = 0
+        self.vad_triggered = False
+
         # Drain previous queue items
         while not self.audio_queue.empty():
             try:

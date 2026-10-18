@@ -138,3 +138,39 @@ def test_app_jarvis_command_flow(
     mock_handle_cmd.assert_called_once_with("Jarvis switch to desktop 3")
     mock_inject.assert_not_called()
     mock_done_cue.assert_not_called()
+
+
+@patch("sunrahahu.app.AudioRecorder")
+@patch("sunrahahu.app.Transcriber")
+def test_app_auto_silence(mock_transcriber_cls, mock_recorder_cls):
+    app = SunrahaHuApp()
+    app.is_recording = True
+    app.stop_and_transcribe = MagicMock()
+
+    app._on_auto_silence()
+
+    app.stop_and_transcribe.assert_called_once()
+
+
+@patch("sunrahahu.app.AudioRecorder")
+@patch("sunrahahu.app.Transcriber")
+def test_app_auto_timeout(mock_transcriber_cls, mock_recorder_cls):
+    mock_status_cb = MagicMock()
+    app = SunrahaHuApp(on_status_change=mock_status_cb)
+    app.is_recording = True
+
+    app._on_auto_timeout()
+
+    assert not app.is_recording
+    app.recorder.stop.assert_called_once()
+    mock_status_cb.assert_called_with("idle")
+
+
+def test_app_set_auto_stop():
+    app = SunrahaHuApp()
+    assert app.auto_stop_enabled is True
+    assert app.recorder.vad_enabled is True
+
+    app.set_auto_stop(False)
+    assert app.auto_stop_enabled is False
+    assert app.recorder.vad_enabled is False
