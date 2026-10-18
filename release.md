@@ -1,5 +1,15 @@
 # Releases
 
+## [0.5.1] - 2026-10-18
+
+### Summary
+Added **Roman Script (English + Hindi + Bengali)** dictation mode, allowing users who mix English, Hindi, and Bengali to have their speech transcribed phonetically in the English Latin alphabet without automatic translation.
+
+### Highlights
+- **Trilingual Roman Script Mode**: Configured prompt steering under `language="roman"` to transcribe mixed Bengali, Hindi, and English into Latin phonetic letters (e.g., *"Ami theek achi, aap batao what is the plan?"*) without translation.
+- **Menu Bar Selection**: Added `Roman Script (English + Hindi + Bengali)` to the menu bar's language selector.
+- **Comprehensive Testing**: Added dedicated unit tests and 10-message stress tests covering trilingual phonetic transcriptions.
+
 ## [0.5.0] - 2026-10-18
 
 ### Summary
