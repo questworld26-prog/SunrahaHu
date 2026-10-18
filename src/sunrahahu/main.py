@@ -1,6 +1,5 @@
-"""macOS Menu Bar entry point for SunrahaHu."""
-
 import rumps
+from PyObjCTools import AppHelper
 
 from sunrahahu.app import SunrahaHuApp
 from sunrahahu.hotkey import HotkeyListener
@@ -41,15 +40,21 @@ class SunrahaHuMenuBar(rumps.App):
         self.hotkey_listener.start()
 
     def on_status_change(self, status: str):
-        if status == "recording":
-            self.title = "🔴 सुन रहा हूँ..."
-            self.status_item.title = "Status: Recording..."
-        elif status == "transcribing":
-            self.title = "⚡ Transcribing..."
-            self.status_item.title = "Status: Transcribing..."
-        else:
-            self.title = "🎙️ Idle"
-            self.status_item.title = "Status: Ready"
+        def _update():
+            if status == "recording":
+                self.title = "🔴 सुन रहा हूँ..."
+                self.status_item.title = "Status: Recording..."
+            elif status == "transcribing":
+                self.title = "⚡ Transcribing..."
+                self.status_item.title = "Status: Transcribing..."
+            else:
+                self.title = "🎙️ Idle"
+                self.status_item.title = "Status: Ready"
+
+        try:
+            AppHelper.callAfter(_update)
+        except Exception:
+            _update()
 
     def on_hotkey(self):
         self.app_core.toggle_recording()
