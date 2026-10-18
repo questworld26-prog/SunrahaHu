@@ -104,9 +104,22 @@ class SunrahaHuMenuBar(rumps.App):
             pb = AppKit.NSPasteboard.generalPasteboard()
             pb.clearContents()
             pb.setString_forType_(text, AppKit.NSPasteboardTypeString)
-            rumps.notification("SunrahaHu", "Copied to Clipboard", f"'{text[:40]}...'")
+            self._send_notification("SunrahaHu", "Copied to Clipboard", f"'{text[:40]}...'")
         else:
-            rumps.notification("SunrahaHu", "Clipboard Empty", "No recent dictation found yet.")
+            self._send_notification("SunrahaHu", "Clipboard Empty", "No recent dictation found yet.")
+
+    def _send_notification(self, title: str, subtitle: str, message: str):
+        """Dispatches notification safely, falling back to osascript if app bundle lacks Info.plist."""
+        try:
+            rumps.notification(title, subtitle, message)
+        except Exception:
+            try:
+                import subprocess
+
+                apple_script = f'display notification "{message}" with title "{title}" subtitle "{subtitle}"'
+                subprocess.run(["osascript", "-e", apple_script], check=False)
+            except Exception as e:
+                print(f"[SunrahaHu] Notification error: {e}")
 
     def test_voice(self, _):
         from sunrahahu.feedback import play_listening_cue
