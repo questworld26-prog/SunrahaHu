@@ -2,15 +2,11 @@
 
 import threading
 import time
-from datetime import datetime
-from pathlib import Path
 
 from sunrahahu.audio import AudioRecorder
 from sunrahahu.feedback import play_done_cue, play_listening_cue, play_typing_cue
 from sunrahahu.injector import inject_text_to_active_window
 from sunrahahu.transcriber import Transcriber
-
-HISTORY_LOG_PATH = Path.home() / ".sunrahahu_history.txt"
 
 
 class SunrahaHuApp:
@@ -18,15 +14,14 @@ class SunrahaHuApp:
         self.recorder = AudioRecorder()
         self.transcriber = Transcriber()
         self.on_status_change = on_status_change
-        self.language = None  # None = Auto Detect, or 'bn', 'hi', 'en', 'hinglish'
+        self.language = None  # None = Auto Detect, or 'bn', 'hi', 'en', 'roman'
         self.is_recording = False
         self.is_transcribing = False
         self.last_transcribed_text = ""
-        self.history = []
         self.lock = threading.Lock()
 
     def set_language(self, language: str = None):
-        """Set language: None for Auto-detect, or 'bn', 'hi', 'en', 'hinglish'."""
+        """Set language: None for Auto-detect, or 'bn', 'hi', 'en', 'roman'."""
         self.language = language
         print(f"[SunrahaHu] Spoken Language set to: {language or 'Auto Detect'}")
 
@@ -36,20 +31,6 @@ class SunrahaHuApp:
                 self.on_status_change(status)
             except Exception as e:
                 print(f"[Error updating status]: {e}")
-
-    def save_to_history(self, text: str):
-        """Append transcribed text to in-memory list and on-disk fallback log."""
-        if not text:
-            return
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        entry = f"[{timestamp}] {text}"
-        self.last_transcribed_text = text
-        self.history.append(entry)
-        try:
-            with open(HISTORY_LOG_PATH, "a", encoding="utf-8") as f:
-                f.write(entry + "\n")
-        except Exception as e:
-            print(f"[SunrahaHu] Failed to append to history log: {e}")
 
     def toggle_recording(self):
         """
@@ -108,7 +89,7 @@ class SunrahaHuApp:
                 print(f'[SunrahaHu] Result in {duration:.2f}s: "{text}"')
 
                 if text:
-                    self.save_to_history(text)
+                    self.last_transcribed_text = text
                     inject_text_to_active_window(text)
                     play_done_cue(async_play=True)
                 else:

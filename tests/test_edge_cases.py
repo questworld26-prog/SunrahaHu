@@ -28,7 +28,7 @@ def test_audio_recorder_double_start():
 
         # Second start without calling stop()
         recorder.start()
-        first_stream.stop.assert_called_once()
+        first_stream.abort.assert_called_once()
         first_stream.close.assert_called_once()
         assert recorder.stream == second_stream
 

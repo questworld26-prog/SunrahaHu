@@ -109,12 +109,10 @@ def test_injector_stress_10_sequential_messages(mock_type):
 @patch("sunrahahu.app.play_done_cue")
 @patch("sunrahahu.app.play_listening_cue")
 @patch("sunrahahu.app.inject_text_to_active_window")
-def test_app_orchestrator_stress_10_cycles_with_history(
-    mock_inject, mock_listening_cue, mock_done_cue, mock_typing_cue
-):
+def test_app_orchestrator_stress_10_cycles(mock_inject, mock_listening_cue, mock_done_cue, mock_typing_cue):
     """
     End-to-end stress test simulating 10 back-to-back toggle recording & transcription cycles
-    with variable lengths and verifies history buffer preservation so messages are never lost.
+    with variable lengths, verifying rapid consecutive injection and state cleanup.
     """
     status_history = []
     app = SunrahaHuApp(on_status_change=lambda s: status_history.append(s))
@@ -149,7 +147,4 @@ def test_app_orchestrator_stress_10_cycles_with_history(
     assert mock_inject.call_count == 10
     actual_injected = [call.args[0] for call in mock_inject.call_args_list]
     assert actual_injected == TEST_MESSAGES
-
-    # Verify history preserved all 10 messages
-    assert len(app.history) == 10
     assert app.last_transcribed_text == TEST_MESSAGES[-1]

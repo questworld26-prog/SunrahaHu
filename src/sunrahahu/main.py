@@ -35,7 +35,6 @@ class SunrahaHuMenuBar(rumps.App):
             self.lang_menu,
             None,  # Separator
             rumps.MenuItem("📋 Copy Last Transcription", callback=self.copy_last_transcription),
-            rumps.MenuItem("📁 Open Dictation History Log", callback=self.open_history_log),
             None,
             rumps.MenuItem("Say 'सुन रहा हूँ' test", callback=self.test_voice),
             None,
@@ -108,17 +107,6 @@ class SunrahaHuMenuBar(rumps.App):
             rumps.notification("SunrahaHu", "Copied to Clipboard", f"'{text[:40]}...'")
         else:
             rumps.notification("SunrahaHu", "Clipboard Empty", "No recent dictation found yet.")
-
-    def open_history_log(self, _):
-        """Opens ~/.sunrahahu_history.txt in default text editor."""
-        import subprocess
-
-        from sunrahahu.app import HISTORY_LOG_PATH
-
-        if not HISTORY_LOG_PATH.exists():
-            with open(HISTORY_LOG_PATH, "w", encoding="utf-8") as f:
-                f.write("# SunrahaHu Dictation History\n")
-        subprocess.run(["open", str(HISTORY_LOG_PATH)], check=False)
 
     def test_voice(self, _):
         from sunrahahu.feedback import play_listening_cue

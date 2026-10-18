@@ -30,8 +30,8 @@ class AudioRecorder:
         # Stop existing stream if already open
         if self.stream is not None:
             try:
-                self.stream.stop()
-                self.stream.close()
+                self.stream.abort(ignore_errors=True)
+                self.stream.close(ignore_errors=True)
             except Exception:
                 pass
             self.stream = None
