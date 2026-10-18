@@ -20,10 +20,13 @@ class SunrahaHuMenuBar(rumps.App):
         # Language selection submenu
         self.lang_menu = rumps.MenuItem("🌐 Language")
         self.lang_auto = rumps.MenuItem("✓ Auto Detect", callback=lambda sender: self.select_language(None, sender))
+        self.lang_hinglish = rumps.MenuItem(
+            "  Hinglish (Hindi in English Script)", callback=lambda sender: self.select_language("hinglish", sender)
+        )
         self.lang_bn = rumps.MenuItem("  বাংলা (Bengali)", callback=lambda sender: self.select_language("bn", sender))
         self.lang_hi = rumps.MenuItem("  हिन्दी (Hindi)", callback=lambda sender: self.select_language("hi", sender))
         self.lang_en = rumps.MenuItem("  English", callback=lambda sender: self.select_language("en", sender))
-        self.lang_menu.update([self.lang_auto, self.lang_bn, self.lang_hi, self.lang_en])
+        self.lang_menu.update([self.lang_auto, self.lang_hinglish, self.lang_bn, self.lang_hi, self.lang_en])
 
         self.menu = [
             self.trigger_item,
@@ -31,6 +34,9 @@ class SunrahaHuMenuBar(rumps.App):
             None,  # Separator
             self.lang_menu,
             None,  # Separator
+            rumps.MenuItem("📋 Copy Last Transcription", callback=self.copy_last_transcription),
+            rumps.MenuItem("📁 Open Dictation History Log", callback=self.open_history_log),
+            None,
             rumps.MenuItem("Say 'सुन रहा हूँ' test", callback=self.test_voice),
             None,
         ]
@@ -67,12 +73,16 @@ class SunrahaHuMenuBar(rumps.App):
 
         # Update checkmarks
         self.lang_auto.title = "  Auto Detect"
+        self.lang_hinglish.title = "  Hinglish (Hindi in English Script)"
         self.lang_bn.title = "  বাংলা (Bengali)"
         self.lang_hi.title = "  हिन्दी (Hindi)"
         self.lang_en.title = "  English"
 
         name = "Auto"
-        if lang_code == "bn":
+        if lang_code == "hinglish":
+            self.lang_hinglish.title = "✓ Hinglish (Hindi in English Script)"
+            name = "Hinglish (Roman Script)"
+        elif lang_code == "bn":
             self.lang_bn.title = "✓ বাংলা (Bengali)"
             name = "বাংলা (Bengali)"
         elif lang_code == "hi":
@@ -85,6 +95,30 @@ class SunrahaHuMenuBar(rumps.App):
             self.lang_auto.title = "✓ Auto Detect"
 
         self.status_item.title = f"Status: Ready (Language: {name})"
+
+    def copy_last_transcription(self, _):
+        """Copies the most recently dictated text onto the system pasteboard."""
+        text = self.app_core.last_transcribed_text
+        if text:
+            import AppKit
+
+            pb = AppKit.NSPasteboard.generalPasteboard()
+            pb.clearContents()
+            pb.setString_forType_(text, AppKit.NSPasteboardTypeString)
+            rumps.notification("SunrahaHu", "Copied to Clipboard", f"'{text[:40]}...'")
+        else:
+            rumps.notification("SunrahaHu", "Clipboard Empty", "No recent dictation found yet.")
+
+    def open_history_log(self, _):
+        """Opens ~/.sunrahahu_history.txt in default text editor."""
+        import subprocess
+
+        from sunrahahu.app import HISTORY_LOG_PATH
+
+        if not HISTORY_LOG_PATH.exists():
+            with open(HISTORY_LOG_PATH, "w", encoding="utf-8") as f:
+                f.write("# SunrahaHu Dictation History\n")
+        subprocess.run(["open", str(HISTORY_LOG_PATH)], check=False)
 
     def test_voice(self, _):
         from sunrahahu.feedback import play_listening_cue

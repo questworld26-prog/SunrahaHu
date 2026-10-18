@@ -19,6 +19,12 @@ COMMON_HALLUCINATIONS = {
     "!",
 }
 
+# Prompt steering Whisper to render mixed Hindi in Roman English alphabet (Hinglish)
+HINGLISH_PROMPT = (
+    "Yeh audio Hinglish mein hai, please write in Roman English alphabet like: "
+    "kya haal hai, main theek hoon, meeting kab hai, lets do this."
+)
+
 
 class Transcriber:
     def __init__(self, model_name: str = MODEL_NAME):
@@ -32,7 +38,7 @@ class Transcriber:
     ) -> str:
         """
         Transcribes 16kHz float32 audio buffer into text.
-        Includes silence detection, audio normalization, and hallucination filtering.
+        Includes silence detection, audio normalization, Hinglish steering, and hallucination filtering.
         """
         if audio_data is None or len(audio_data) == 0:
             return ""
@@ -42,7 +48,6 @@ class Transcriber:
             return ""
 
         # Edge case: Pure silence / low-energy ambient noise
-        # Calculate Root Mean Square (RMS) energy
         rms = np.sqrt(np.mean(np.square(audio_data)))
         if rms < 0.003:  # Background room noise threshold
             return ""
@@ -56,7 +61,12 @@ class Transcriber:
             "task": task,
             "no_speech_threshold": 0.6,
         }
-        if language:
+
+        # Language handling & Hinglish mode
+        if language == "hinglish":
+            kwargs["language"] = "en"
+            kwargs["initial_prompt"] = HINGLISH_PROMPT
+        elif language:
             kwargs["language"] = language
 
         try:

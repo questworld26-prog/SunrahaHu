@@ -1,4 +1,4 @@
-"""Stress test for rapid sequential transcription and text injection."""
+"""Stress test for rapid sequential transcription, variable audio lengths, and mixed-language Hinglish."""
 
 import time
 from unittest.mock import MagicMock, patch
@@ -11,37 +11,62 @@ from sunrahahu.injector import inject_text_to_active_window
 from sunrahahu.transcriber import Transcriber
 
 TEST_MESSAGES = [
-    "Hello, this is message number one.",
+    # 1. Short English phrase (1s)
+    "Quick note.",
+    # 2. Medium English sentence (3s)
     "Testing audio transcription responsiveness under load.",
-    "Whisper Large V3 Turbo running on Apple Silicon.",
-    "আমি এটা বাংলায় পরীক্ষা করছি।",  # Bengali: I am testing this in Bengali.
-    "नमस्ते, यह पाँचवाँ टेस्ट संदेश है।",  # Hindi: Hello, this is the 5th test message.
-    "Rapid consecutive speech recognition test.",
-    "Ensuring zero memory leaks and clipboard integrity.",
-    "Checking active window Unicode keystroke dispatch.",
-    "আজকের আবহাওয়া খুব সুন্দর।",  # Bengali: Today's weather is very beautiful.
-    "Final tenth message stress test completed successfully.",
+    # 3. Technical terminology (5s)
+    "Whisper Large V3 Turbo running on Apple Silicon unified memory.",
+    # 4. Bengali native script (4s)
+    "আমি এটা বাংলায় পরীক্ষা করছি।",
+    # 5. Hindi native script (4s)
+    "नमस्ते, यह पाँचवाँ टेस्ट संदेश है।",
+    # 6. Hinglish: Mixed Hindi in English alphabet (6s)
+    "Haan bhai main kal meeting mein yeh discuss karunga, lets make sure all tests pass.",
+    # 7. Another Hinglish conversational phrase (3s)
+    "Kya haal hai sab theek thaak chal raha hai?",
+    # 8. Very long paragraph (12s)
+    "This is a significantly longer dictation passage designed to stress test the buffer allocation, "
+    "audio frame concatenation, and memory deallocation pipelines to guarantee that extended speech "
+    "never causes a buffer overrun or memory leak.",
+    # 9. Complex Bengali sentence (5s)
+    "আজকের আবহাওয়া খুব সুন্দর এবং রোদ উঠেছে।",
+    # 10. Final Hinglish closing (4s)
+    "Chalo final tenth message stress test completed successfully.",
 ]
+
+# Variable audio lengths in seconds corresponding to each message
+AUDIO_DURATIONS_SEC = [1.0, 3.0, 5.0, 4.0, 4.0, 6.0, 3.0, 12.0, 5.0, 4.0]
 
 
 @pytest.mark.stress
-def test_transcriber_stress_10_sequential_runs():
+def test_transcriber_stress_variable_length_and_hinglish():
     """
-    Stress test verifying Transcriber handles 10 consecutive audio buffers
-    without memory crashes, token drift, or timeouts.
+    Stress test verifying Transcriber handles variable audio durations (1s to 12s)
+    and Hinglish Roman alphabet steering without crashes or memory drift.
     """
     transcriber = Transcriber()
 
-    # Pre-generate 1-second non-silent dummy audio waveform
-    dummy_audio = np.sin(np.linspace(0, 100, 16000), dtype=np.float32) * 0.1
-
     durations = []
-    for i in range(10):
+    for msg, duration_sec in zip(TEST_MESSAGES, AUDIO_DURATIONS_SEC, strict=False):
+        # Generate sinusoidal waveform of exact specified length
+        sample_count = int(16000 * duration_sec)
+        variable_audio = np.sin(np.linspace(0, 100 * duration_sec, sample_count), dtype=np.float32) * 0.1
+
+        # Use Hinglish mode for indices 5, 6, 9
+        lang = "hinglish" if "Hinglish" in str(msg) or "bhai" in str(msg) or "Chalo" in str(msg) else None
+
         start = time.perf_counter()
         with patch("mlx_whisper.transcribe") as mock_mlx:
-            mock_mlx.return_value = {"text": TEST_MESSAGES[i]}
-            result = transcriber.transcribe(dummy_audio)
-            assert result == TEST_MESSAGES[i]
+            mock_mlx.return_value = {"text": msg}
+            result = transcriber.transcribe(variable_audio, language=lang)
+            assert result == msg
+
+            # Verify Hinglish steered with English language and prompt
+            if lang == "hinglish":
+                _, kwargs = mock_mlx.call_args
+                assert kwargs["language"] == "en"
+                assert "initial_prompt" in kwargs
 
         elapsed = time.perf_counter() - start
         durations.append(elapsed)
@@ -82,19 +107,19 @@ def test_injector_stress_10_sequential_messages(mock_type):
 @patch("sunrahahu.app.play_done_cue")
 @patch("sunrahahu.app.play_listening_cue")
 @patch("sunrahahu.app.inject_text_to_active_window")
-def test_app_orchestrator_stress_10_cycles(mock_inject, mock_listening_cue, mock_done_cue, mock_typing_cue):
+def test_app_orchestrator_stress_10_cycles_with_history(
+    mock_inject, mock_listening_cue, mock_done_cue, mock_typing_cue
+):
     """
-    End-to-end stress test simulating 10 back-to-back toggle recording & transcription cycles.
-    Verifies state transitions (idle -> recording -> transcribing -> idle) remain consistent.
+    End-to-end stress test simulating 10 back-to-back toggle recording & transcription cycles
+    with variable lengths and verifies history buffer preservation so messages are never lost.
     """
     status_history = []
     app = SunrahaHuApp(on_status_change=lambda s: status_history.append(s))
 
-    fake_audio = np.ones(16000, dtype=np.float32)
-
     with (
         patch.object(app.recorder, "start"),
-        patch.object(app.recorder, "stop", return_value=fake_audio),
+        patch.object(app.recorder, "stop") as mock_stop,
         patch.object(app.transcriber, "transcribe") as mock_transcribe,
         patch("threading.Thread") as mock_thread,
     ):
@@ -105,7 +130,9 @@ def test_app_orchestrator_stress_10_cycles(mock_inject, mock_listening_cue, mock
 
         mock_thread.side_effect = run_target
 
-        for expected_text in TEST_MESSAGES:
+        for expected_text, duration_sec in zip(TEST_MESSAGES, AUDIO_DURATIONS_SEC, strict=False):
+            sample_count = int(16000 * duration_sec)
+            mock_stop.return_value = np.ones(sample_count, dtype=np.float32)
             mock_transcribe.return_value = expected_text
 
             # 1. Toggle ON (Start)
@@ -120,3 +147,7 @@ def test_app_orchestrator_stress_10_cycles(mock_inject, mock_listening_cue, mock
     assert mock_inject.call_count == 10
     actual_injected = [call.args[0] for call in mock_inject.call_args_list]
     assert actual_injected == TEST_MESSAGES
+
+    # Verify history preserved all 10 messages
+    assert len(app.history) == 10
+    assert app.last_transcribed_text == TEST_MESSAGES[-1]
