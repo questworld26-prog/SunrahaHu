@@ -37,7 +37,7 @@ def test_audio_recorder_start_stop(mock_input_stream):
     result = recorder.stop()
 
     assert not recorder.is_recording
-    mock_stream_instance.stop.assert_called_once()
+    mock_stream_instance.abort.assert_called_once()
     mock_stream_instance.close.assert_called_once()
     assert isinstance(result, np.ndarray)
     assert len(result) == 3200

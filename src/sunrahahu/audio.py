@@ -56,8 +56,10 @@ class AudioRecorder:
         self.is_recording = False
         if self.stream is not None:
             try:
-                self.stream.stop()
-                self.stream.close()
+                # Use abort() instead of stop() on macOS CoreAudio
+                # stop() waits for pending buffer delivery which deadlocks in HALC_IOThread mutex
+                self.stream.abort(ignore_errors=True)
+                self.stream.close(ignore_errors=True)
             except Exception:
                 pass
             self.stream = None
