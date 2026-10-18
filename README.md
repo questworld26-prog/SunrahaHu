@@ -2,7 +2,7 @@
 
 A lightweight, background macOS dictation application powered by **Whisper Large-V3-Turbo** and Apple Silicon's **MLX** framework.
 
-Whenever you press the hotkey, SunrahaHu says **"सुन रहा हूँ"**, records your voice, transcribes it locally with near-zero latency, and automatically pastes the text directly into whichever application window currently has focus (e.g. Cursor, Chrome, Terminal, Slack, WhatsApp, Notes).
+Whenever you click **"🎙️ Dictate (Toggle)"** in the menu bar, SunrahaHu says **"सुन रहा हूँ"**, records your voice, transcribes it locally with near-zero latency, and automatically types the text directly into whichever application window currently has focus (e.g. Cursor, Chrome, Terminal, Slack, WhatsApp, Notes).
 
 ---
 
@@ -10,10 +10,10 @@ Whenever you press the hotkey, SunrahaHu says **"सुन रहा हूँ"*
 
 - **Apple Silicon Native**: Built on `mlx-whisper` using Metal GPU acceleration on Unified Memory.
 - **Whisper Large-V3-Turbo**: High accuracy transcription running natively on Apple Silicon Metal GPU (~545MB RAM).
-- **🌐 Language Selector**: Choose between **Auto Detect**, **বাংলা (Bengali)**, **हिन्दी (Hindi)**, or **English** from the menu bar to ensure accurate script recognition.
+- **🌐 Language Selector**: Choose between **Auto Detect**, **Roman Script (English + Hindi + Bengali)**, **বাংলা (Bengali)**, **हिन्दी (Hindi)**, or **English** from the menu bar to ensure accurate script recognition.
 - **Audio Voice Feedback**: Confirms with **"सुन रहा हूँ"** *before* opening the microphone so the voice prompt never bleeds into your dictation.
-- **Active Window Injection**: Synthesizes `Cmd+V` into your current active window while preserving your original clipboard contents.
-- **Menu Bar App**: Discrete macOS menu bar item displaying current status (`🎙️ Idle`, `🔴 सुन रहा हूँ...`, `⚡ Transcribing...`).
+- **Direct Unicode Typing**: Uses macOS `CGEventKeyboardSetUnicodeString` to type text into active window directly without touching the clipboard.
+- **Menu Bar App**: Clean macOS menu bar interface displaying current status (`🎙️ Idle`, `🔴 सुन रहा हूँ...`, `⚡ Transcribing...`).
 
 ---
 
@@ -33,12 +33,11 @@ uv run python -m sunrahahu.main
 uv run pytest -v
 ```
 
-### Keyboard Shortcut
-- **Toggle Dictate**: `Cmd + Opt + .` (Command + Option + Period)
-  1. Focus any text field in any app (Chrome, Terminal, Slack, Cursor, etc.).
-  2. Press **`Cmd + Opt + .`** — you will hear **"सुन रहा हूँ"** and the menu bar turns red `🔴`.
-  3. Speak naturally.
-  4. Press **`Cmd + Opt + .`** again to finish — Whisper transcribes in milliseconds and pastes the text directly at your cursor!
+### Dictation Usage
+1. Focus any text field in any app (Chrome, Terminal, Slack, Cursor, etc.).
+2. Click **"🎙️ Dictate (Toggle)"** in the menu bar — you will hear **"सुन रहा हूँ"** and the menu bar turns red `🔴`.
+3. Speak naturally.
+4. Click **"⏹️ Stop Recording"** in the menu bar — Whisper transcribes and types the text directly into your focused window!
 
 ---
 

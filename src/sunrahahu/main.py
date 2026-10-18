@@ -2,10 +2,6 @@ import rumps
 from PyObjCTools import AppHelper
 
 from sunrahahu.app import SunrahaHuApp
-from sunrahahu.hotkey import HotkeyListener
-
-# Default Hotkey: Cmd+Option+.
-DEFAULT_HOTKEY = "<cmd>+<alt>+."
 
 
 class SunrahaHuMenuBar(rumps.App):
@@ -14,7 +10,7 @@ class SunrahaHuMenuBar(rumps.App):
         self.app_core = SunrahaHuApp(on_status_change=self.on_status_change)
 
         # Menu items
-        self.trigger_item = rumps.MenuItem("🎙️ Dictate (Cmd+Opt+.)", callback=self.manual_trigger)
+        self.trigger_item = rumps.MenuItem("🎙️ Dictate (Toggle)", callback=self.manual_trigger)
         self.status_item = rumps.MenuItem("Status: Ready (Language: Auto)", callback=None)
 
         # Language selection submenu
@@ -38,29 +34,25 @@ class SunrahaHuMenuBar(rumps.App):
             None,
         ]
 
-        # Start global hotkey
-        self.hotkey_listener = HotkeyListener(DEFAULT_HOTKEY, self.on_hotkey)
-        self.hotkey_listener.start()
-
     def on_status_change(self, status: str):
         def _update():
             if status == "recording":
                 self.title = "🔴 सुन रहा हूँ..."
                 self.status_item.title = "Status: Recording..."
+                self.trigger_item.title = "⏹️ Stop Recording"
             elif status == "transcribing":
                 self.title = "⚡ Transcribing..."
                 self.status_item.title = "Status: Transcribing..."
+                self.trigger_item.title = "⚡ Transcribing..."
             else:
                 self.title = "🎙️ Idle"
                 self.status_item.title = "Status: Ready"
+                self.trigger_item.title = "🎙️ Dictate (Toggle)"
 
         try:
             AppHelper.callAfter(_update)
         except Exception:
             _update()
-
-    def on_hotkey(self):
-        self.app_core.toggle_recording()
 
     def manual_trigger(self, _):
         self.app_core.toggle_recording()
@@ -102,9 +94,9 @@ class SunrahaHuMenuBar(rumps.App):
 def main():
     print("=" * 50)
     print(" SunrahaHu (सुन रहा हूँ) - Whisper Large-V3-Turbo")
-    print(" Global Shortcut: Cmd + Opt + .")
-    print(" Press once: Says 'सुन रहा हूँ' and starts recording")
-    print(" Press again: Stops recording and pastes text into active window")
+    print(" Menu Bar Mode: Click '🎙️ Dictate (Toggle)' in the menu bar")
+    print(" Click once: Says 'सुन रहा हूँ' and starts recording")
+    print(" Click again: Stops recording and types text into active window")
     print("=" * 50)
     SunrahaHuMenuBar().run()
 

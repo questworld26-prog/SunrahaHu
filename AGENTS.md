@@ -9,10 +9,10 @@ Instructions, architecture guidelines, and operational constraints for AI agents
 **SunrahaHu** is a lightweight, background macOS menu bar dictation utility running on Apple Silicon. It provides system-wide speech-to-text with near-zero latency, powered by **Whisper Large-V3-Turbo** via native Metal acceleration (`mlx-whisper`).
 
 ### Core Flow
-1. **Trigger**: User presses global hotkey (`Cmd + Opt + .`).
+1. **Trigger**: User clicks **"🎙️ Dictate (Toggle)"** in the macOS menu bar.
 2. **Audio Cue**: Speaks **"सुन रहा हूँ"** synchronously *before* opening the microphone to avoid speaker audio bleed.
 3. **Capture**: Records microphone audio at 16kHz float32 mono via `sounddevice`.
-4. **Second Press**: User toggles off with `Cmd + Opt + .`. App announces **"Typing"** voice cue.
+4. **Second Press**: User clicks **"⏹️ Stop Recording"** in the menu bar. App announces **"Typing"** voice cue.
 5. **Transcription**: Audio buffer is transcribed using `mlx-whisper` on Apple Silicon Metal GPU.
 6. **Injection**: Text is typed directly into whichever application window currently has focus via `Quartz.CGEventKeyboardSetUnicodeString` without touching the clipboard.
 
