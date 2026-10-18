@@ -28,15 +28,44 @@ def post_cmd_v():
     Quartz.CGEventPost(Quartz.kCGHIDEventTap, event_up)
 
 
-def inject_text_to_active_window(text: str):
+def type_unicode_string(text: str):
     """
-    Inserts text into the currently active macOS application window.
-    Preserves original clipboard contents, pastes text using Cmd+V via CGEvent,
-    and then restores original clipboard contents.
+    Directly types a unicode string into the focused window using CGEventKeyboardSetUnicodeString.
+    Completely avoids touching NSPasteboard / system clipboard.
     """
     if not text:
         return
 
+    # Post unicode string in chunks (up to 20 chars per event for stability)
+    chunk_size = 20
+    for i in range(0, len(text), chunk_size):
+        chunk = text[i : i + chunk_size]
+        event_down = Quartz.CGEventCreateKeyboardEvent(None, 0, True)
+        Quartz.CGEventKeyboardSetUnicodeString(event_down, len(chunk), chunk)
+        Quartz.CGEventPost(Quartz.kCGHIDEventTap, event_down)
+
+        time.sleep(0.005)
+
+        event_up = Quartz.CGEventCreateKeyboardEvent(None, 0, False)
+        Quartz.CGEventSetFlags(event_up, 0)
+        Quartz.CGEventPost(Quartz.kCGHIDEventTap, event_up)
+
+
+def inject_text_to_active_window(text: str, method: str = "direct"):
+    """
+    Inserts text into the currently active macOS application window.
+    method:
+      'direct' (default): Synthesizes direct unicode typing. Never touches clipboard!
+      'paste': Uses pasteboard with Cmd+V and preserves previous clipboard content.
+    """
+    if not text:
+        return
+
+    if method == "direct":
+        type_unicode_string(text)
+        return
+
+    # Fallback / paste method
     pasteboard = get_pasteboard()
     ns_type = AppKit.NSPasteboardTypeString
 
@@ -48,14 +77,14 @@ def inject_text_to_active_window(text: str):
         pasteboard.clearContents()
         pasteboard.setString_forType_(text, ns_type)
 
-        # Brief pause to ensure pasteboard is updated
-        time.sleep(0.05)
+        # Pause to ensure pasteboard is flushed and recognized by window server
+        time.sleep(0.1)
 
         # 3. Simulate Cmd+V keyboard shortcut
         post_cmd_v()
 
-        # Allow destination app to process the paste command
-        time.sleep(0.2)
+        # Allow destination app ample time to process the paste event before restoring
+        time.sleep(0.4)
 
     finally:
         # 4. Restore previous clipboard content

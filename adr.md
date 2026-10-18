@@ -17,8 +17,9 @@ Users on Apple Silicon macOS need a global voice dictation tool that can transcr
    - Play the voice prompt synchronously *before* opening the microphone capture stream.
    - Rationale: Prevents the MacBook speakers from bleeding into the microphone, which previously caused Whisper to auto-detect the Hindi audio prompt as part of the user's spoken sentence.
 3. **Active Window Text Injection**:
-   - Inject text using a clipboard-preserving `Cmd+V` simulation via macOS `Quartz.CGEvent` and `AppKit.NSPasteboard`.
-   - Rationale: Ensures instantaneous pasting across third-party applications (VS Code, Cursor, Chrome, Slack, Terminal) without character drops or multi-line typing lag.
+   - Primary: Use direct Unicode keyboard event simulation via `Quartz.CGEventKeyboardSetUnicodeString`.
+   - Rationale: Directly injects Unicode text (English, Bengali, Hindi, emojis) without touching `NSPasteboard` or using `Cmd+V`. This completely eliminates clipboard race conditions where an application occasionally pasted previous clipboard contents before the pasteboard update was flushed.
+   - Fallback: Clipboard `Cmd+V` simulation with generous window server sync intervals.
 4. **Project Layout**:
    - Standardize on `src/sunrahahu` and `tests/` with `hatchling` and `uv` package management.
    - Enforce code hygiene using **Ruff** (`ruff check`, `ruff format`) and **Pytest**.

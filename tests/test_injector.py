@@ -2,14 +2,29 @@
 
 from unittest.mock import MagicMock, patch
 
-from sunrahahu.injector import inject_text_to_active_window
+from sunrahahu.injector import inject_text_to_active_window, type_unicode_string
 
 
 def test_inject_text_empty():
-    # Should safely return without touching pasteboard
-    with patch("sunrahahu.injector.get_pasteboard") as mock_get_pb:
+    with patch("sunrahahu.injector.type_unicode_string") as mock_type:
         inject_text_to_active_window("")
-        mock_get_pb.assert_not_called()
+        mock_type.assert_not_called()
+
+
+@patch("Quartz.CGEventPost")
+@patch("Quartz.CGEventKeyboardSetUnicodeString")
+@patch("Quartz.CGEventCreateKeyboardEvent")
+def test_type_unicode_string(mock_create_event, mock_set_unicode, mock_post_event):
+    type_unicode_string("হ্যালো World")
+    mock_create_event.assert_called()
+    mock_set_unicode.assert_called()
+    mock_post_event.assert_called()
+
+
+@patch("sunrahahu.injector.type_unicode_string")
+def test_inject_text_direct_default(mock_type):
+    inject_text_to_active_window("New transcribed text")
+    mock_type.assert_called_once_with("New transcribed text")
 
 
 @patch("sunrahahu.injector.post_cmd_v")
@@ -22,7 +37,7 @@ def test_inject_text_clipboard_flow(
     mock_pb.stringForType_.return_value = "original_clipboard_text"
     mock_get_pb.return_value = mock_pb
 
-    inject_text_to_active_window("New transcribed dictation")
+    inject_text_to_active_window("New transcribed dictation", method="paste")
 
     # 1. Backed up old clipboard
     mock_pb.stringForType_.assert_called_once()
