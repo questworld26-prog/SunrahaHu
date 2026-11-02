@@ -77,3 +77,28 @@ def test_transcriber_roman_script(mock_mlx_transcribe):
     assert "English Latin alphabet" in kwargs["initial_prompt"]
     assert "Bengali" in kwargs["initial_prompt"]
     assert "Hindi" in kwargs["initial_prompt"]
+
+
+@patch("mlx_whisper.transcribe")
+def test_transcriber_low_gain_bluetooth_audio(mock_mlx_transcribe):
+    """
+    Verifies that low-amplitude audio typical of Bluetooth headsets / AirPods (RMS ~ 0.0014)
+    is not dropped by silence threshold and is normalized before inference.
+    """
+    mock_mlx_transcribe.return_value = {"text": "Hello Bluetooth dictation"}
+    transcriber = Transcriber()
+
+    # 1 second of low-gain speech (RMS ~ 0.0014, below old 0.003 threshold)
+    low_gain_audio = np.sin(np.linspace(0, 100, 16000), dtype=np.float32) * 0.002
+    rms = np.sqrt(np.mean(np.square(low_gain_audio)))
+    assert rms < 0.003, f"Expected RMS < 0.003, got {rms}"
+    assert rms >= 0.0001, f"Expected RMS >= 0.0001, got {rms}"
+
+    result = transcriber.transcribe(low_gain_audio)
+
+    assert result == "Hello Bluetooth dictation"
+    assert mock_mlx_transcribe.call_count == 1
+    args, _ = mock_mlx_transcribe.call_args
+    normalized_passed = args[0]
+    # Max peak of normalized audio must be scaled to ~0.95
+    assert np.isclose(np.max(np.abs(normalized_passed)), 0.95, atol=0.01)

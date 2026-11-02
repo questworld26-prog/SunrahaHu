@@ -20,11 +20,18 @@ class SunrahaHuApp:
         )
         self.transcriber = Transcriber()
         self.on_status_change = on_status_change
+        self.selected_device = None  # None = System Default
         self.language = None  # None = Auto Detect, or 'bn', 'hi', 'en', 'roman'
         self.is_recording = False
         self.is_transcribing = False
         self.last_transcribed_text = ""
         self.lock = threading.Lock()
+
+    def set_device(self, device_id: int | str | None):
+        """Set active recording input device (None for System Default)."""
+        self.selected_device = device_id
+        self.recorder.device = device_id
+        print(f"[SunrahaHu] Spoken Input Device set to: {device_id if device_id is not None else 'System Default'}")
 
     def set_auto_stop(self, enabled: bool):
         """Enable or disable VAD auto-stop on silence."""
@@ -54,7 +61,7 @@ class SunrahaHuApp:
         finally:
             self.lock.release()
 
-    def set_language(self, language: str = None):
+    def set_language(self, language: str | None = None):
         """Set language: None for Auto-detect, or 'bn', 'hi', 'en', 'roman'."""
         self.language = language
         print(f"[SunrahaHu] Spoken Language set to: {language or 'Auto Detect'}")

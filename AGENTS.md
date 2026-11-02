@@ -12,7 +12,7 @@ Instructions, architecture guidelines, and operational constraints for AI agents
 1. **Trigger**: User clicks **"🎙️ Dictate (Toggle)"** in the macOS menu bar.
 2. **Audio Cue**: Speaks **"सुन रहा हूँ"** synchronously *before* opening the microphone to avoid speaker audio bleed.
 3. **Capture**: Records microphone audio at 16kHz float32 mono via `sounddevice`.
-4. **Auto-Stop or Second Press**: Native RMS VAD automatically detects 1.3s of trailing silence and stops recording (or user clicks **"⏹️ Stop Recording"**). App announces **"Typing"** voice cue.
+4. **Auto-Stop or Second Press**: Silero Neural VAD automatically detects 1.3s of trailing silence and stops recording (or user clicks **"⏹️ Stop Recording"**). App announces **"Typing"** voice cue.
 5. **Transcription**: Audio buffer is transcribed using `mlx-whisper` on Apple Silicon Metal GPU.
 6. **Injection / Command**: Text is typed directly into the focused window via `Quartz.CGEventKeyboardSetUnicodeString`, or routed to Jarvis commands.
 
@@ -44,7 +44,7 @@ Instructions, architecture guidelines, and operational constraints for AI agents
   - Pass `initial_prompt=ROMAN_PHONETIC_PROMPT` containing phonetic Roman examples.
 
 ### ⚠️ Active Window Text Injection
-- **Direct Unicode Typing**: Use `type_unicode_string()` in [`injector.py`](file:///Users/prithis/QuestWorld/SunrahaHu/src/sunrahahu/injector.py) via `CGEventKeyboardSetUnicodeString`. Do not rely on clipboard `Cmd+V` which can race against window server updates.
+- **Direct Unicode Typing**: Use `type_unicode_string()` in [`injector.py`](src/sunrahahu/injector.py) via `CGEventKeyboardSetUnicodeString`. Do not rely on clipboard `Cmd+V` which can race against window server updates.
 - Keep automatic trailing whitespace on typed strings for seamless continuous dictation.
 
 ### ⚠️ Thread Safety & macOS Cocoa RunLoop
@@ -102,4 +102,4 @@ Before committing any changes:
    git status -s
    ```
 4. **Preserve Release Log**:
-   - Keep [`release.md`](file:///Users/prithis/QuestWorld/SunrahaHu/release.md) updated with the latest version at the top.
+   - Keep [`release.md`](release.md) updated with the latest version at the top.

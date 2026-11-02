@@ -1,10 +1,47 @@
-# Python-generated files
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[oc]
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
 build/
 dist/
 wheels/
-*.egg-info
+*.egg-info/
+*.egg
 
 # Virtual environments
-.venv
+.venv/
+env/
+venv/
+ENV/
+
+# Testing & Linting caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Secrets & Local environment variables
+.env
+.env.*
+*.pem
+*.key
+*.cert
+
+# Editor & IDE directories
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

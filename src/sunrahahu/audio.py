@@ -12,6 +12,7 @@ from sunrahahu.vad import SileroVAD
 class AudioRecorder:
     def __init__(
         self,
+        device: int | str | None = None,
         sample_rate: int = 16000,
         channels: int = 1,
         vad_enabled: bool = True,
@@ -22,6 +23,7 @@ class AudioRecorder:
         on_silence_detected=None,
         on_initial_timeout=None,
     ):
+        self.device = device
         self.sample_rate = sample_rate
         self.channels = channels
         self.vad_enabled = vad_enabled
@@ -105,9 +107,8 @@ class AudioRecorder:
         if self.vad_enabled and not self.vad_triggered:
             self._process_vad(indata)
 
-    def start(self):
-        """Start capturing audio cleanly with input device validation."""
-        # Reset VAD tracking counters
+    def _reset_state(self):
+        """Reset internal VAD counters and tracking buffers."""
         if self.vad:
             self.vad.reset()
         self.vad_buffer = np.array([], dtype=np.float32)
@@ -117,38 +118,64 @@ class AudioRecorder:
         self.initial_silence_frames = 0
         self.vad_triggered = False
 
-        # Drain previous queue items
+    def _drain_queue(self):
+        """Empty any leftover audio frames from queue."""
         while not self.audio_queue.empty():
             try:
                 self.audio_queue.get_nowait()
             except queue.Empty:
                 break
 
-        # Stop existing stream if already open
+    def _close_stream(self, stream):
+        """Safely close a PortAudio stream on a background thread to prevent CoreAudio HALC_IOThread deadlocks."""
+        if stream is None:
+            return
+
+        def _do_close():
+            try:
+                stream.abort(ignore_errors=True)
+                stream.close(ignore_errors=True)
+            except Exception:
+                pass
+
+        t = threading.Thread(target=_do_close, daemon=True)
+        t.start()
+        t.join(timeout=0.2)
+
+    def start(self):
+        """Start capturing audio cleanly with input device validation."""
+        self._reset_state()
+        self._drain_queue()
+
         if self.stream is not None:
             old_stream = self.stream
             self.stream = None
+            self._close_stream(old_stream)
 
-            def _close_old():
-                try:
-                    old_stream.abort(ignore_errors=True)
-                    old_stream.close(ignore_errors=True)
-                except Exception:
-                    pass
-
-            t = threading.Thread(target=_close_old, daemon=True)
-            t.start()
-            t.join(timeout=0.2)
+        # Refresh PortAudio cache to detect dynamically connected/disconnected Bluetooth headsets
+        try:
+            sd._terminate()
+            sd._initialize()
+        except Exception:
+            pass
 
         self.is_recording = True
         try:
             self.stream = sd.InputStream(
+                device=self.device,
                 samplerate=self.sample_rate,
                 channels=self.channels,
                 dtype="float32",
                 callback=self._callback,
             )
             self.stream.start()
+            try:
+                active_dev = getattr(self.stream, "device", self.device)
+                if active_dev is not None:
+                    dev_info = sd.query_devices(active_dev)
+                    print(f"[AudioRecorder] Listening on '{dev_info['name']}' at {self.sample_rate}Hz")
+            except Exception:
+                pass
         except Exception as e:
             self.is_recording = False
             self.stream = None
@@ -160,20 +187,7 @@ class AudioRecorder:
         self.is_recording = False
         stream = self.stream
         self.stream = None
-
-        if stream is not None:
-
-            def _close_stream():
-                try:
-                    stream.abort(ignore_errors=True)
-                    stream.close(ignore_errors=True)
-                except Exception:
-                    pass
-
-            # Close stream on a background thread with timeout to prevent CoreAudio HALC_IOThread deadlocks
-            t = threading.Thread(target=_close_stream, daemon=True)
-            t.start()
-            t.join(timeout=0.2)
+        self._close_stream(stream)
 
         chunks = []
         while not self.audio_queue.empty():

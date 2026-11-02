@@ -1432,7 +1432,7 @@ wheels = [
 
 [[package]]
 name = "sunrahahu"
-version = "1.1.0"
+version = "1.2.5"
 source = { editable = "." }
 dependencies = [
     { name = "mlx-whisper" },

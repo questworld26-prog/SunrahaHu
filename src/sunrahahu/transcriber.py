@@ -36,7 +36,7 @@ class Transcriber:
     def transcribe(
         self,
         audio_data: np.ndarray,
-        language: str = None,
+        language: str | None = None,
         task: str = "transcribe",
     ) -> str:
         """
@@ -50,13 +50,20 @@ class Transcriber:
         if len(audio_data) < 16000 * 0.5:
             return ""
 
-        # Edge case: Pure silence / low-energy ambient noise
-        rms = np.sqrt(np.mean(np.square(audio_data)))
-        if rms < 0.003:  # Background room noise threshold
+        # Remove DC offset if present
+        audio_data = audio_data - np.mean(audio_data)
+
+        # Edge case: Pure silence / digital flatline (< -80 dBFS)
+        # Low threshold (0.0001) prevents discarding quiet Bluetooth headsets / AirPods,
+        # while rejecting true flatlines before heavy inference.
+        rms = float(np.sqrt(np.mean(np.square(audio_data))))
+        if rms < 0.0001:
             return ""
 
         # Normalize audio volume to prevent clipping or whispering under-gain
-        max_abs = np.max(np.abs(audio_data))
+        max_abs = float(np.max(np.abs(audio_data)))
+        if max_abs < 0.0002:
+            return ""
         normalized_audio = (audio_data / max_abs * 0.95) if max_abs > 0 else audio_data
 
         kwargs = {

@@ -172,3 +172,17 @@ def test_app_set_auto_stop():
     app.set_auto_stop(False)
     assert app.auto_stop_enabled is False
     assert app.recorder.vad_enabled is False
+
+
+def test_app_set_device():
+    app = SunrahaHuApp()
+    assert app.selected_device is None
+    assert app.recorder.device is None
+
+    app.set_device(3)
+    assert app.selected_device == 3
+    assert app.recorder.device == 3
+
+    app.set_device(None)
+    assert app.selected_device is None
+    assert app.recorder.device is None

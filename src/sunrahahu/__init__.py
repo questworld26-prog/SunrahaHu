@@ -1,3 +1,3 @@
 """SunrahaHu package initialization."""
 
-__version__ = "0.5.0"
+__version__ = "1.2.5"

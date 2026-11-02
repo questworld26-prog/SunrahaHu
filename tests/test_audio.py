@@ -139,3 +139,21 @@ def test_audio_recorder_vad_disabled():
     recorder._callback(silence_frame, 2048, None, None)
 
     mock_silence_cb.assert_not_called()
+
+
+@patch("sounddevice.InputStream")
+def test_audio_recorder_device_selection(mock_input_stream):
+    """Verifies that an explicitly selected input device index is passed to sounddevice."""
+    mock_stream_instance = MagicMock()
+    mock_input_stream.return_value = mock_stream_instance
+
+    recorder = AudioRecorder(device=3, sample_rate=16000, channels=1)
+    recorder.start()
+
+    assert recorder.is_recording
+    mock_input_stream.assert_called_once()
+    _, kwargs = mock_input_stream.call_args
+    assert kwargs["device"] == 3
+    assert kwargs["samplerate"] == 16000
+    assert kwargs["channels"] == 1
+    recorder.stop()

@@ -1,8 +1,9 @@
 [project]
 name = "sunrahahu"
-version = "1.1.0"
+version = "1.2.5"
 description = "Fast background macOS voice dictation using Whisper Large-V3-Turbo"
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.13"
 dependencies = [
     "mlx-whisper>=0.4.3",

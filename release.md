@@ -1,5 +1,40 @@
 # Releases
 
+## [1.2.5] - 2026-10-28
+
+### Summary
+Stability and compatibility release resolving macOS menu bar initialization crashes and delivering universal support for **Bluetooth headphones, AirPods, and low-gain microphones**.
+
+### Highlights
+- **Menu Bar Initialization Crash Fix**:
+  - Resolved `AttributeError: 'NoneType' object has no attribute 'removeAllItems'` in `refresh_microphones()` by safeguarding `rumps.MenuItem.clear()` against uninitialized Cocoa `_menu` references during initial startup.
+- **Universal Low-Gain & Bluetooth Audio Support**:
+  - Replaced legacy RMS pre-filter (`0.003`) with a digital flatline rejection floor (`0.0001` / -80 dBFS) plus DC offset cancellation.
+  - Allows quiet Bluetooth SCO/HFP microphone streams (RMS ~0.001–0.0028) to normalize properly and transcribe via Whisper Large-V3-Turbo without getting discarded as "below silence threshold".
+- **Dynamic PortAudio Device Discovery**:
+  - Automatically re-initializes PortAudio on recording start, detecting Bluetooth headphones plugged in or connected while SunrahaHu is running in the background.
+- **Interactive Menu Bar Microphone Selector**:
+  - Added `🎤 Microphone` submenu to the menu bar displaying available physical and virtual input devices, dynamic active checkmarks, and a manual `🔄 Refresh Devices` action.
+- **Comprehensive Quality Assurance**:
+  - Added automated UI unit tests in `tests/test_main.py` and low-gain transcription tests in `tests/test_transcriber.py` (113 tests passing).
+
+## [1.2.0] - 2026-10-28
+
+### Summary
+Fixed **Bluetooth Headset & Low-Gain Microphone Dictation**. Eliminates premature "No speech detected or below silence threshold" rejections when speaking through Bluetooth headphones (AirPods, Bluetooth headsets), adds automatic PortAudio device cache refresh on connect, and introduces an interactive **Microphone Device Selector** in the macOS menu bar.
+
+### Highlights
+- **Universal Low-Gain & Bluetooth Audio Support**:
+  - Replaced legacy RMS pre-filter (`0.003`) with a digital flatline rejection floor (`0.0001` / -80 dBFS) plus DC offset cancellation.
+  - Allows quiet Bluetooth SCO/HFP microphone streams (RMS ~0.001–0.0028) to normalize properly and transcribe via Whisper Large-V3-Turbo without getting discarded.
+- **Dynamic PortAudio Device Discovery**:
+  - Automatically re-initializes PortAudio on recording start, detecting Bluetooth headphones plugged in or connected while SunrahaHu is running in the background.
+- **Interactive Menu Bar Microphone Selector**:
+  - Added `🎤 Microphone` submenu to the menu bar displaying available physical and virtual input devices, dynamic active checkmarks, and a manual `🔄 Refresh Devices` action.
+- **Architectural Documentation & Tests**:
+  - Documented findings in [ADR-0004](adr.md#adr-0004-universal-bluetooth-headset--low-gain-microphone-compatibility).
+  - Added automated unit tests verifying low-gain Bluetooth audio normalization and explicit device routing (111 tests passing).
+
 ## [1.1.0] - 2026-10-18
 
 ### Summary
@@ -15,7 +50,7 @@ Added **Silero Neural Voice Activity Detection (VAD) & Silence Auto-Stop**. Powe
 - **Micro-Latency on Apple Silicon**:
   - Executes single-frame inference in **0.11 ms** on CPU NEON threads, leaving the Metal GPU entirely dedicated to Whisper Large-V3-Turbo.
 - **Architectural Documentation**:
-  - Recorded migration rationale from RMS to Silero Neural VAD in [ADR-0002](file:///Users/prithis/QuestWorld/SunrahaHu/adr.md#adr-0002-native-rms-energy-voice-activity-detection-vad--silence-auto-stop) and [ADR-0003](file:///Users/prithis/QuestWorld/SunrahaHu/adr.md#adr-0003-silero-neural-voice-activity-detection-vad-via-onnx-runtime).
+  - Recorded migration rationale from RMS to Silero Neural VAD in [ADR-0002](adr.md#adr-0002-native-rms-energy-voice-activity-detection-vad--silence-auto-stop) and [ADR-0003](adr.md#adr-0003-silero-neural-voice-activity-detection-vad-via-onnx-runtime).
 - **Test Coverage**:
   - Added dedicated test suite in `test_vad.py` testing pure silence, loud simulated fan noise rejection, and audio chunk boundaries (108 tests passing).
 

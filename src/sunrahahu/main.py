@@ -27,16 +27,72 @@ class SunrahaHuMenuBar(rumps.App):
         self.lang_en = rumps.MenuItem("  English", callback=lambda sender: self.select_language("en", sender))
         self.lang_menu.update([self.lang_auto, self.lang_roman, self.lang_bn, self.lang_hi, self.lang_en])
 
+        # Microphone selection submenu
+        self.mic_menu = rumps.MenuItem("🎤 Microphone")
+        self.refresh_microphones()
+
         self.menu = [
             self.trigger_item,
             self.status_item,
             None,  # Separator
             self.auto_stop_item,
             self.lang_menu,
+            self.mic_menu,
             None,  # Separator
             rumps.MenuItem("Say 'सुन रहा हूँ' test", callback=self.test_voice),
             None,
         ]
+
+    def refresh_microphones(self, sender=None):
+        """Query and populate available input microphones with active checkmark."""
+        import sounddevice as sd
+
+        try:
+            sd._terminate()
+            sd._initialize()
+            devices = sd.query_devices()
+            default_input_idx = sd.default.device[0]
+        except Exception as e:
+            print(f"[SunrahaHu Error] Querying microphones: {e}")
+            devices = []
+            default_input_idx = None
+
+        items = []
+        default_name = "Default"
+        if default_input_idx is not None and 0 <= default_input_idx < len(devices):
+            default_name = devices[default_input_idx].get("name", "Default")
+
+        is_default_selected = self.app_core.selected_device is None
+        default_title = f"{'✓' if is_default_selected else ' '} System Default ({default_name})"
+        items.append(rumps.MenuItem(default_title, callback=lambda s: self.select_microphone(None, s)))
+
+        # Add all available physical/virtual input devices
+        for idx, dev in enumerate(devices):
+            if dev.get("max_input_channels", 0) > 0:
+                is_selected = self.app_core.selected_device == idx
+                item_title = f"{'✓' if is_selected else ' '} {dev['name']}"
+                items.append(
+                    rumps.MenuItem(
+                        item_title,
+                        callback=lambda s, dev_id=idx: self.select_microphone(dev_id, s),
+                    )
+                )
+
+        items.append(None)  # Separator
+        items.append(rumps.MenuItem("🔄 Refresh Devices", callback=self.refresh_microphones))
+
+        if getattr(self.mic_menu, "_menu", None) is not None:
+            self.mic_menu.clear()
+        else:
+            for k in list(self.mic_menu.keys()):
+                del self.mic_menu[k]
+
+        self.mic_menu.update(items)
+
+    def select_microphone(self, device_id, sender):
+        """Switch recording input microphone."""
+        self.app_core.set_device(device_id)
+        self.refresh_microphones()
 
     def on_status_change(self, status: str):
         def _update():
