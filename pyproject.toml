@@ -1,6 +1,6 @@
 [project]
 name = "sunrahahu"
-version = "1.2.5"
+version = "1.5.0"
 description = "Fast background macOS voice dictation using Whisper Large-V3-Turbo"
 readme = "README.md"
 license = "MIT"
