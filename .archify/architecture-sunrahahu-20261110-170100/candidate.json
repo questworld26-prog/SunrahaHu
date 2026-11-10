@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "SunrahaHu Architecture & Audio Pipeline",
+    "subtitle": "Apple Silicon Background Dictation & Voice Automation",
+    "output": ".archify/architecture-sunrahahu-20261110-170100/sunrahahu-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/questworld26-prog/SunrahaHu",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "6473eb1850dc419fbf0302017f34dbf9574c4a6e"
+    }
+  },
+  "components": [
+    {
+      "id": "menu_bar",
+      "type": "frontend",
+      "label": "Menu Bar Controller",
+      "sublabel": "main.py",
+      "tag": "SunrahaHuMenuBar",
+      "pos": [40, 220],
+      "size": [150, 68],
+      "sources": [
+        {
+          "path": "src/sunrahahu/main.py",
+          "line": 9,
+          "end_line": 97,
+          "label": "SunrahaHuMenuBar"
+        }
+      ]
+    },
+    {
+      "id": "app_orchestrator",
+      "type": "backend",
+      "label": "App Orchestrator",
+      "sublabel": "app.py",
+      "tag": "SunrahaHuApp",
+      "pos": [250, 220],
+      "size": [150, 68],
+      "sources": [
+        {
+          "path": "src/sunrahahu/app.py",
+          "line": 13,
+          "end_line": 147,
+          "label": "SunrahaHuApp"
+        }
+      ]
+    },
+    {
+      "id": "audio_feedback",
+      "type": "external",
+      "label": "Audio Feedback",
+      "sublabel": "feedback.py",
+      "tag": "play_*_cue",
+      "pos": [250, 80],
+      "size": [150, 64],
+      "sources": [
+        {
+          "path": "src/sunrahahu/feedback.py",
+          "line": 12,
+          "end_line": 71,
+          "label": "Voice cues & afplay"
+        }
+      ]
+    },
+    {
+      "id": "audio_recorder",
+      "type": "backend",
+      "label": "Audio Recorder",
+      "sublabel": "audio.py",
+      "tag": "AudioRecorder",
+      "pos": [460, 220],
+      "size": [150, 68],
+      "sources": [
+        {
+          "path": "src/sunrahahu/audio.py",
+          "line": 12,
+          "end_line": 205,
+          "label": "AudioRecorder"
+        }
+      ]
+    },
+    {
+      "id": "silero_vad",
+      "type": "security",
+      "label": "Silero Neural VAD",
+      "sublabel": "vad.py (CPU ONNX)",
+      "tag": "SileroVAD",
+      "pos": [460, 370],
+      "size": [150, 64],
+      "sources": [
+        {
+          "path": "src/sunrahahu/vad.py",
+          "line": 11,
+          "end_line": 63,
+          "label": "SileroVAD v5 ONNX"
+        }
+      ]
+    },
+    {
+      "id": "whisper_stt",
+      "type": "cloud",
+      "label": "Whisper Large-V3-Turbo",
+      "sublabel": "transcriber.py (Metal GPU)",
+      "tag": "Transcriber",
+      "pos": [670, 220],
+      "size": [160, 68],
+      "sources": [
+        {
+          "path": "src/sunrahahu/transcriber.py",
+          "line": 32,
+          "end_line": 94,
+          "label": "Transcriber MLX"
+        }
+      ]
+    },
+    {
+      "id": "jarvis_commander",
+      "type": "backend",
+      "label": "Jarvis Commander",
+      "sublabel": "commander.py",
+      "tag": "handle_command",
+      "pos": [900, 140],
+      "size": [150, 68],
+      "sources": [
+        {
+          "path": "src/sunrahahu/commander.py",
+          "line": 126,
+          "end_line": 172,
+          "label": "Voice Command Dispatcher"
+        }
+      ]
+    },
+    {
+      "id": "text_injector",
+      "type": "external",
+      "label": "Quartz Text Injector",
+      "sublabel": "injector.py",
+      "tag": "inject_text",
+      "pos": [900, 300],
+      "size": [150, 68],
+      "sources": [
+        {
+          "path": "src/sunrahahu/injector.py",
+          "line": 31,
+          "end_line": 100,
+          "label": "CGEvent Unicode Typing"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "macOS Audio Capture & Neural VAD (Apple Silicon CPU)",
+      "wraps": ["audio_recorder", "silero_vad"]
+    },
+    {
+      "kind": "security-group",
+      "label": "macOS Window Server & Quartz HID Layer",
+      "wraps": ["jarvis_commander", "text_injector"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "menu-to-app",
+      "from": "menu_bar",
+      "to": "app_orchestrator",
+      "label": "trigger toggle",
+      "variant": "emphasis"
+    },
+    {
+      "id": "app-to-cue",
+      "from": "app_orchestrator",
+      "to": "audio_feedback",
+      "label": "sync cue ('सुन रहा हूँ')",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "app-to-recorder",
+      "from": "app_orchestrator",
+      "to": "audio_recorder",
+      "label": "start 16kHz stream",
+      "variant": "emphasis"
+    },
+    {
+      "id": "recorder-to-vad",
+      "from": "audio_recorder",
+      "to": "silero_vad",
+      "label": "32ms chunks (512 spl)",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "vad-to-app",
+      "from": "silero_vad",
+      "to": "app_orchestrator",
+      "label": "1.3s trailing silence",
+      "variant": "security",
+      "fromSide": "left",
+      "toSide": "bottom"
+    },
+    {
+      "id": "app-to-whisper",
+      "from": "app_orchestrator",
+      "to": "whisper_stt",
+      "label": "normalized float32 buffer",
+      "variant": "emphasis",
+      "fromSide": "top",
+      "toSide": "top",
+      "via": [[325, 175], [750, 175]]
+    },
+    {
+      "id": "whisper-to-commander",
+      "from": "whisper_stt",
+      "to": "jarvis_commander",
+      "label": "wake command",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "whisper-to-injector",
+      "from": "whisper_stt",
+      "to": "text_injector",
+      "label": "transcribed text",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Zero-Bleed Feedback",
+      "items": [
+        "Synchronous audio prompt ('सुन रहा हूँ') finishes before microphone opens",
+        "Announces 'Typing' voice cue on auto-stop while transcription runs"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Acoustic Intelligence",
+      "items": [
+        "Silero VAD v5 evaluates 32ms frames with 64-sample recurrent context",
+        "Rejects continuous fan / AC hiss; triggers auto-stop on 1.3s trailing silence",
+        "Automatic DC offset removal and peak normalization for low-gain Bluetooth mics"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Native Execution",
+      "items": [
+        "Whisper Large-V3-Turbo executes via MLX Metal GPU in ~545MB RAM",
+        "Direct Quartz Unicode injection (CGEventKeyboardSetUnicodeString) avoids clipboard",
+        "Quartz Control+1..9 space switching for hands-free macOS desktop navigation"
+      ]
+    }
+  ]
+}

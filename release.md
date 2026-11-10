@@ -1,5 +1,24 @@
 # Releases
 
+## [1.5.0] - 2026-11-10
+
+### Summary
+Major milestone release establishing formal **Spec-Driven Development (SDD)**, strict **Test-Driven Development (TDD)** governance, two-way AST traceability, and interactive system architectural visualization.
+
+### Highlights
+- **Formal EARS Specifications**:
+  - Decomposed SunrahaHu into 5 domain specification files across 12 EARS requirements (`2..5` atomic criteria each) covering audio VAD, Whisper transcription, text injection, Jarvis commands, and orchestrator UI.
+  - Zero static violations verified by the 7-Gate EARS validator (`ears_validator.py validate --strict`).
+- **Airtight Two-Way AST Traceability**:
+  - 100% of active requirements implemented with `# [spec: REQ-ID]` across all 9 source modules and 21 public symbols.
+  - 100% of acceptance criteria verified with 1-Test-to-1-AC `# [verifies: REQ-ID/AC-ID]` tags across 64 test functions (116 passing tests).
+  - SHA-256 requirement block hashing locked in `specs/traceability.json` with zero drift under strict Spec Guardian audits.
+- **Architectural Visualization**:
+  - Designed an interactive system architecture diagram with animated signal flows, component passports, and direct IDE source code navigation via Archify.
+  - Upgraded [`README.md`](README.md) with a high-fidelity Mermaid pipeline and interactive diagram link.
+- **Global Hotkey Coverage**:
+  - Added dedicated unit tests for `HotkeyListener` in `tests/test_hotkey.py`, closing the public symbol coverage gap.
+
 ## [1.2.5] - 2026-10-28
 
 ### Summary

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "cdcde662-fa5b-447d-aa5e-c8da4cd764bf",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/Users/prithis/QuestWorld/SunrahaHu/.archify/architecture-sunrahahu-20261110-170100/candidate.json",
+  "output": "/Users/prithis/QuestWorld/SunrahaHu/.archify/architecture-sunrahahu-20261110-170100/sunrahahu-architecture.html",
+  "specification": {
+    "sha256": "5df99c760f3e75506fedb9e601e77473128d1b7299615b8448782b71ce3cbbb1",
+    "bytes": 6750
+  },
+  "artifact": {
+    "sha256": "5d4ba7f03ff6eab93be0af47447438e9ef5c0817b2f1f1afc50f8505c86f7779",
+    "bytes": 830863
+  }
+}

@@ -36,35 +36,55 @@ When triggered, SunrahaHu plays an audio confirmation (**"सुन रहा �
 
 ## 🏗️ Architecture & Pipeline
 
-```text
-  [ User Clicks "🎙️ Dictate" ]
-               │
-               ▼
-   [ Audio Cue: "सुन रहा हूँ" ]  (Plays synchronously before mic opens)
-               │
-               ▼
-    [ CoreAudio 16kHz Stream ]   (PortAudio / sounddevice non-blocking stream)
-               │
-               ▼
-     [ Silero Neural VAD ]       (ONNX Runtime evaluates 32ms frames; rejects fan/AC noise)
-               │
-    [ 1.3s Trailing Silence ]    (Hands-free auto-stop triggered)
-               │
-               ▼
-  [ Audio Normalization & DC ]   (DC offset cancellation + low-gain scaling)
-               │
-               ▼
-  [ Whisper Large-V3-Turbo ]     (mlx-whisper on Apple Silicon Metal GPU)
-               │
-         ┌─────┴────────────────┐
-         ▼                      ▼
-  [ Voice Command ]     [ General Dictation ]
-   "Computer, go to      Direct Quartz Unicode typing
-     desktop 3"          via CGEventKeyboardSetUnicodeString
-         │                      │
-         ▼                      ▼
-  [ Quartz Ctrl+N ]     [ Injected into Focused App ]
+```mermaid
+flowchart TD
+    subgraph UI ["macOS User Interface"]
+        MB["🎙️ Menu Bar Controller<br/>(main.py / rumps)"]
+        AF["🔊 Audio Feedback<br/>(feedback.py / afplay)"]
+    end
+
+    subgraph AudioPipeline ["macOS CoreAudio & Neural VAD (Apple Silicon CPU)"]
+        AR["🎤 Audio Recorder (16kHz mono)<br/>(audio.py / sounddevice)"]
+        VAD["🧠 Silero Neural VAD v5<br/>(vad.py / ONNX Runtime)"]
+        DC["⚡ DC Offset & Low-Gain Normalizer<br/>(transcriber.py)"]
+    end
+
+    subgraph Inference ["Whisper Inference (Apple Silicon Metal GPU)"]
+        WSP["⚡ Whisper Large-V3-Turbo<br/>(transcriber.py / mlx-whisper)"]
+    end
+
+    subgraph Execution ["macOS Quartz HID & Automation"]
+        CMD["🤖 Jarvis Voice Commander<br/>(commander.py)"]
+        SPACES["🖥️ Desktop Space Switcher<br/>(Control + 1..9 HID Events)"]
+        INJ["⌨️ Quartz Text Injector<br/>(injector.py / CGEventUnicode)"]
+        APP["📝 Focused Active Window<br/>(Cursor, VS Code, Browser, Notes)"]
+    end
+
+    MB -->|"1. Toggle Click"| AF
+    AF -->|"2. Sync Voice Cue ('सुन रहा हूँ')"| AR
+    AR -->|"3. 32ms Audio Frames (512 samples)"| VAD
+    VAD -->|"4. Trailing Silence (1.3s) / Timeout"| AR
+    AR -->|"5. Audio Buffer"| DC
+    DC -->|"6. Normalized Float32"| WSP
+
+    WSP -->|"7a. Wake Command Match"| CMD
+    CMD -->|"8a. HID Control+N"| SPACES
+
+    WSP -->|"7b. Transcribed Unicode Text"| INJ
+    INJ -->|"8b. Direct Keystroke Events"| APP
+
+    classDef ui fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
+    classDef audio fill:#0f172a,stroke:#34d399,stroke-width:2px,color:#f8fafc;
+    classDef stt fill:#1e1b4b,stroke:#a855f7,stroke-width:2px,color:#f8fafc;
+    classDef hid fill:#18181b,stroke:#f59e0b,stroke-width:2px,color:#f8fafc;
+
+    class MB,AF ui;
+    class AR,VAD,DC audio;
+    class WSP stt;
+    class CMD,SPACES,INJ,APP hid;
 ```
+
+> 💡 **Interactive Architecture Diagram**: Explore the full interactive system diagram with animated data flow, component passports, and source code navigation at [`.archify/architecture-sunrahahu-20261110-170100/sunrahahu-architecture.html`](.archify/architecture-sunrahahu-20261110-170100/sunrahahu-architecture.html).
 
 ---
 

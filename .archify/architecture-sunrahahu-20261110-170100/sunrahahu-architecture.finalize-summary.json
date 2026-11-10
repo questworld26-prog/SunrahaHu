@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/prithis/QuestWorld/SunrahaHu/.archify/architecture-sunrahahu-20261110-170100/candidate.json",
+    "sha256": "5df99c760f3e75506fedb9e601e77473128d1b7299615b8448782b71ce3cbbb1",
+    "bytes": 6750
+  },
+  "artifact": {
+    "path": "/Users/prithis/QuestWorld/SunrahaHu/.archify/architecture-sunrahahu-20261110-170100/sunrahahu-architecture.html",
+    "sha256": "5d4ba7f03ff6eab93be0af47447438e9ef5c0817b2f1f1afc50f8505c86f7779",
+    "bytes": 830863
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/prithis/QuestWorld/SunrahaHu/.archify/architecture-sunrahahu-20261110-170100/sunrahahu-architecture.finalize.json",
+    "summaryReceipt": "/Users/prithis/QuestWorld/SunrahaHu/.archify/architecture-sunrahahu-20261110-170100/sunrahahu-architecture.finalize-summary.json",
+    "browserCheckReceipt": "/Users/prithis/QuestWorld/SunrahaHu/.archify/architecture-sunrahahu-20261110-170100/sunrahahu-architecture.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-10T07:58:18.571Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 13060,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

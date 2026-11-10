@@ -35,4 +35,3 @@ def test_hotkey_listener_stop(mock_global_hotkeys):
 
     mock_instance.stop.assert_called_once()
     assert listener.listener is None
-
