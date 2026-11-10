@@ -7,6 +7,7 @@ import numpy as np
 from sunrahahu.audio import AudioRecorder
 
 
+# [verifies: AUD-001/AC-AUD-001.1]
 def test_audio_recorder_init():
     recorder = AudioRecorder(sample_rate=16000, channels=1)
     assert recorder.sample_rate == 16000
@@ -15,6 +16,7 @@ def test_audio_recorder_init():
     assert recorder.stream is None
 
 
+# [verifies: AUD-001/AC-AUD-001.2]
 @patch("sounddevice.InputStream")
 def test_audio_recorder_start_stop(mock_input_stream):
     mock_stream_instance = MagicMock()
@@ -45,6 +47,7 @@ def test_audio_recorder_start_stop(mock_input_stream):
     assert result[1600] == 2.0
 
 
+# [verifies: AUD-001/AC-AUD-001.2]
 def test_audio_recorder_empty_stop():
     recorder = AudioRecorder()
     result = recorder.stop()
@@ -52,6 +55,7 @@ def test_audio_recorder_empty_stop():
     assert len(result) == 0
 
 
+# [verifies: AUD-002/AC-AUD-002.1]
 def test_audio_recorder_vad_silence_detection():
     mock_silence_cb = MagicMock()
     recorder = AudioRecorder(
@@ -89,6 +93,7 @@ def test_audio_recorder_vad_silence_detection():
     assert recorder.vad_triggered is True
 
 
+# [verifies: AUD-002/AC-AUD-002.2]
 def test_audio_recorder_vad_initial_timeout():
     mock_timeout_cb = MagicMock()
     recorder = AudioRecorder(
@@ -117,6 +122,7 @@ def test_audio_recorder_vad_initial_timeout():
     assert recorder.vad_triggered is True
 
 
+# [verifies: AUD-002/AC-AUD-002.3]
 def test_audio_recorder_vad_disabled():
     mock_silence_cb = MagicMock()
     recorder = AudioRecorder(
@@ -139,8 +145,11 @@ def test_audio_recorder_vad_disabled():
     recorder._callback(silence_frame, 2048, None, None)
 
     mock_silence_cb.assert_not_called()
+    assert recorder.vad_triggered is False
+    assert mock_silence_cb.call_count == 0
 
 
+# [verifies: AUD-001/AC-AUD-001.4]
 @patch("sounddevice.InputStream")
 def test_audio_recorder_device_selection(mock_input_stream):
     """Verifies that an explicitly selected input device index is passed to sounddevice."""

@@ -6,6 +6,7 @@ from PyObjCTools import AppHelper
 from sunrahahu.app import SunrahaHuApp
 
 
+# [spec: UI-001]
 class SunrahaHuMenuBar(rumps.App):
     def __init__(self):
         super().__init__("SunrahaHu", title="🎙️ Idle")

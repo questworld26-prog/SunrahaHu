@@ -15,6 +15,7 @@ from sunrahahu.commander import (
 )
 
 
+# [verifies: CMD-001/AC-CMD-001.1]
 @pytest.mark.parametrize(
     "text,expected",
     [
@@ -38,10 +39,13 @@ from sunrahahu.commander import (
         ("", False),
     ],
 )
+# [verifies: CMD-001/AC-CMD-001.1]
 def test_is_jarvis_command(text, expected):
+    """[verifies: CMD-001/AC-CMD-001.1]"""
     assert is_jarvis_command(text) == expected
 
 
+# [verifies: CMD-001/AC-CMD-001.2]
 @pytest.mark.parametrize(
     "text,expected",
     [
@@ -57,10 +61,13 @@ def test_is_jarvis_command(text, expected):
         ("Jarvis", ""),
     ],
 )
+# [verifies: CMD-001/AC-CMD-001.2]
 def test_strip_jarvis_prefix(text, expected):
+    """[verifies: CMD-001/AC-CMD-001.2]"""
     assert strip_jarvis_prefix(text) == expected
 
 
+# [verifies: CMD-001/AC-CMD-001.3]
 @pytest.mark.parametrize(
     "phrase,expected_num",
     [
@@ -92,10 +99,13 @@ def test_strip_jarvis_prefix(text, expected):
         ("hello world", None),
     ],
 )
+# [verifies: CMD-001/AC-CMD-001.3]
 def test_parse_desktop_number(phrase, expected_num):
+    """[verifies: CMD-001/AC-CMD-001.3]"""
     assert parse_desktop_number(phrase) == expected_num
 
 
+# [verifies: CMD-001/AC-CMD-001.3]
 def test_parse_command_valid():
     action, arg = parse_command("Jarvis switch to desktop 3")
     assert action == "switch_desktop"
@@ -106,12 +116,14 @@ def test_parse_command_valid():
     assert arg == 1
 
 
+# [verifies: CMD-001/AC-CMD-001.4]
 def test_parse_command_unrecognized():
     action, arg = parse_command("Jarvis do something unknown")
     assert action is None
     assert arg is None
 
 
+# [verifies: CMD-002/AC-CMD-002.1]
 @patch("Quartz.CGEventPost")
 @patch("Quartz.CGEventSetFlags")
 @patch("Quartz.CGEventCreateKeyboardEvent")
@@ -136,12 +148,14 @@ def test_switch_to_desktop_valid(mock_create_event, mock_set_flags, mock_post_ev
         assert mock_post_event.call_count == 2
 
 
+# [verifies: CMD-002/AC-CMD-002.2]
 def test_switch_to_desktop_invalid_number():
     assert switch_to_desktop(0) is False
     assert switch_to_desktop(10) is False
     assert switch_to_desktop(-1) is False
 
 
+# [verifies: CMD-002/AC-CMD-002.1]
 @patch("sunrahahu.commander.play_command_cue")
 @patch("sunrahahu.commander.switch_to_desktop", return_value=True)
 def test_handle_command_success(mock_switch, mock_cue):
@@ -151,6 +165,7 @@ def test_handle_command_success(mock_switch, mock_cue):
     mock_cue.assert_called_once_with("Switching to desktop 3", async_play=True)
 
 
+# [verifies: CMD-002/AC-CMD-002.2]
 @patch("sunrahahu.commander.play_command_cue")
 @patch("sunrahahu.commander.switch_to_desktop")
 def test_handle_command_out_of_bounds(mock_switch, mock_cue):
@@ -160,6 +175,7 @@ def test_handle_command_out_of_bounds(mock_switch, mock_cue):
     mock_cue.assert_called_once_with("Desktop number must be between 1 and 9", async_play=True)
 
 
+# [verifies: CMD-002/AC-CMD-002.3]
 @patch("sunrahahu.commander.play_command_cue")
 @patch("sunrahahu.commander.switch_to_desktop")
 def test_handle_command_unrecognized(mock_switch, mock_cue):
@@ -169,6 +185,7 @@ def test_handle_command_unrecognized(mock_switch, mock_cue):
     mock_cue.assert_called_once_with("Command not recognized", async_play=True)
 
 
+# [verifies: CMD-002/AC-CMD-002.4]
 def test_handle_command_non_command():
     result = handle_command("Today is a wonderful sunny day")
     assert result is False

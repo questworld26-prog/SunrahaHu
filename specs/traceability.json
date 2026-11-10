@@ -1,0 +1,302 @@
+{
+  "last_audited_at": "2026-11-10T08:55:46.942374+00:00",
+  "total_requirements": 12,
+  "total_criteria": 44,
+  "verified_criteria_count": 44,
+  "planned_requirements_count": 0,
+  "reverse_traceability": {
+    "untagged_files_count": 0,
+    "untagged_src_symbols_count": 0,
+    "untagged_tests_count": 0,
+    "orphan_tags_count": 0
+  },
+  "semantic_alignment": {
+    "stacked_test_tags_count": 0,
+    "cross_link_mismatches_count": 0,
+    "weak_test_assertions_count": 0,
+    "ac_anchor_mismatches_count": 0
+  },
+  "status": "PASS",
+  "requirements": [
+    {
+      "requirement_id": "VAD-001",
+      "title": "Silero Neural Voice Activity Detection",
+      "spec_file": "specs/audio_vad.md",
+      "is_planned": false,
+      "sha256": "a7f110a6a0d20342726b24bc05069c8a36690c2050c7844ba3b6ab8012f7cd09",
+      "verified_sha256": "a7f110a6a0d20342726b24bc05069c8a36690c2050c7844ba3b6ab8012f7cd09",
+      "acceptance_criteria": [
+        "AC-VAD-001.1",
+        "AC-VAD-001.2",
+        "AC-VAD-001.3"
+      ],
+      "verified_criteria": [
+        "AC-VAD-001.1",
+        "AC-VAD-001.2",
+        "AC-VAD-001.3"
+      ],
+      "implementation_files": [
+        "src/sunrahahu/vad.py"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "requirement_id": "AUD-001",
+      "title": "CoreAudio Stream Capture & Mutex-Safe Teardown",
+      "spec_file": "specs/audio_vad.md",
+      "is_planned": false,
+      "sha256": "61d66b7c7fd5cd4603d41cade2b787d749c5bbdf851308d80c15b125ca5eb368",
+      "verified_sha256": "61d66b7c7fd5cd4603d41cade2b787d749c5bbdf851308d80c15b125ca5eb368",
+      "acceptance_criteria": [
+        "AC-AUD-001.1",
+        "AC-AUD-001.2",
+        "AC-AUD-001.3",
+        "AC-AUD-001.4"
+      ],
+      "verified_criteria": [
+        "AC-AUD-001.1",
+        "AC-AUD-001.2",
+        "AC-AUD-001.3",
+        "AC-AUD-001.4"
+      ],
+      "implementation_files": [
+        "src/sunrahahu/audio.py"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "requirement_id": "AUD-002",
+      "title": "Streaming VAD Auto-Stop & Initial Silence Timeout",
+      "spec_file": "specs/audio_vad.md",
+      "is_planned": false,
+      "sha256": "5819feed9c9765efcb25bad4e48c7dbe937aa06d1bf73351d3b7005dd8dc66b9",
+      "verified_sha256": "5819feed9c9765efcb25bad4e48c7dbe937aa06d1bf73351d3b7005dd8dc66b9",
+      "acceptance_criteria": [
+        "AC-AUD-002.1",
+        "AC-AUD-002.2",
+        "AC-AUD-002.3"
+      ],
+      "verified_criteria": [
+        "AC-AUD-002.1",
+        "AC-AUD-002.2",
+        "AC-AUD-002.3"
+      ],
+      "implementation_files": [
+        "src/sunrahahu/audio.py"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "requirement_id": "CMD-001",
+      "title": "Wake-Prefix Detection & Phonetic Desktop Parsing",
+      "spec_file": "specs/commander.md",
+      "is_planned": false,
+      "sha256": "f1935793df9f6d0b2e5bca49d059cc531ca047f7df714441b24e4ac0629396bf",
+      "verified_sha256": "f1935793df9f6d0b2e5bca49d059cc531ca047f7df714441b24e4ac0629396bf",
+      "acceptance_criteria": [
+        "AC-CMD-001.1",
+        "AC-CMD-001.2",
+        "AC-CMD-001.3",
+        "AC-CMD-001.4"
+      ],
+      "verified_criteria": [
+        "AC-CMD-001.1",
+        "AC-CMD-001.2",
+        "AC-CMD-001.3",
+        "AC-CMD-001.4"
+      ],
+      "implementation_files": [
+        "src/sunrahahu/commander.py"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "requirement_id": "CMD-002",
+      "title": "Quartz Desktop Space Switching & Command Routing",
+      "spec_file": "specs/commander.md",
+      "is_planned": false,
+      "sha256": "95bc8e47b30b9ff931a2d089eec54ef060f3c68b0925106f82431cabeb5382ca",
+      "verified_sha256": "95bc8e47b30b9ff931a2d089eec54ef060f3c68b0925106f82431cabeb5382ca",
+      "acceptance_criteria": [
+        "AC-CMD-002.1",
+        "AC-CMD-002.2",
+        "AC-CMD-002.3",
+        "AC-CMD-002.4"
+      ],
+      "verified_criteria": [
+        "AC-CMD-002.1",
+        "AC-CMD-002.2",
+        "AC-CMD-002.3",
+        "AC-CMD-002.4"
+      ],
+      "implementation_files": [
+        "src/sunrahahu/commander.py"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "requirement_id": "INJ-001",
+      "title": "Direct Quartz Unicode Typing & Pasteboard Fallback",
+      "spec_file": "specs/injection_feedback.md",
+      "is_planned": false,
+      "sha256": "e500e760d7049e8db4fdd1e03cdfc55e8a00591e24898898eb3e5fdd3eea1443",
+      "verified_sha256": "e500e760d7049e8db4fdd1e03cdfc55e8a00591e24898898eb3e5fdd3eea1443",
+      "acceptance_criteria": [
+        "AC-INJ-001.1",
+        "AC-INJ-001.2",
+        "AC-INJ-001.3",
+        "AC-INJ-001.4"
+      ],
+      "verified_criteria": [
+        "AC-INJ-001.1",
+        "AC-INJ-001.2",
+        "AC-INJ-001.3",
+        "AC-INJ-001.4"
+      ],
+      "implementation_files": [
+        "src/sunrahahu/injector.py"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "requirement_id": "FDB-001",
+      "title": "Zero-Bleed Audio Cues & TTS Speech Fallback",
+      "spec_file": "specs/injection_feedback.md",
+      "is_planned": false,
+      "sha256": "91b9de37a2920cab6176df8dbbd2f9c29e18ab5bfee1e4fb68e3727e91b8b9ac",
+      "verified_sha256": "91b9de37a2920cab6176df8dbbd2f9c29e18ab5bfee1e4fb68e3727e91b8b9ac",
+      "acceptance_criteria": [
+        "AC-FDB-001.1",
+        "AC-FDB-001.2",
+        "AC-FDB-001.3",
+        "AC-FDB-001.4",
+        "AC-FDB-001.5"
+      ],
+      "verified_criteria": [
+        "AC-FDB-001.1",
+        "AC-FDB-001.2",
+        "AC-FDB-001.3",
+        "AC-FDB-001.4",
+        "AC-FDB-001.5"
+      ],
+      "implementation_files": [
+        "src/sunrahahu/feedback.py"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "requirement_id": "APP-001",
+      "title": "Dictation State Machine, Debounce Locking & Worker Pipeline",
+      "spec_file": "specs/orchestrator_ui.md",
+      "is_planned": false,
+      "sha256": "09f66a157b62319cbf41acbe27e704cf250964f8715cb30f1db962703b6c590c",
+      "verified_sha256": "09f66a157b62319cbf41acbe27e704cf250964f8715cb30f1db962703b6c590c",
+      "acceptance_criteria": [
+        "AC-APP-001.1",
+        "AC-APP-001.2",
+        "AC-APP-001.3",
+        "AC-APP-001.4",
+        "AC-APP-001.5"
+      ],
+      "verified_criteria": [
+        "AC-APP-001.1",
+        "AC-APP-001.2",
+        "AC-APP-001.3",
+        "AC-APP-001.4",
+        "AC-APP-001.5"
+      ],
+      "implementation_files": [
+        "src/sunrahahu/app.py"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "requirement_id": "UI-001",
+      "title": "macOS Menu Bar Controller & Dynamic Microphone Selector",
+      "spec_file": "specs/orchestrator_ui.md",
+      "is_planned": false,
+      "sha256": "553ab4662dbe99442e1ebe55d43a7a3320a2db7ff186d683d1d88433bd40018f",
+      "verified_sha256": "553ab4662dbe99442e1ebe55d43a7a3320a2db7ff186d683d1d88433bd40018f",
+      "acceptance_criteria": [
+        "AC-UI-001.1",
+        "AC-UI-001.2",
+        "AC-UI-001.3"
+      ],
+      "verified_criteria": [
+        "AC-UI-001.1",
+        "AC-UI-001.2",
+        "AC-UI-001.3"
+      ],
+      "implementation_files": [
+        "src/sunrahahu/main.py"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "requirement_id": "HKY-001",
+      "title": "Global Keyboard Hotkey Listener",
+      "spec_file": "specs/orchestrator_ui.md",
+      "is_planned": false,
+      "sha256": "f0d4591889908b2ebbc5e4038dc0fdf1bad8725feb366977e331a9e57f633c38",
+      "verified_sha256": "f0d4591889908b2ebbc5e4038dc0fdf1bad8725feb366977e331a9e57f633c38",
+      "acceptance_criteria": [
+        "AC-HKY-001.1",
+        "AC-HKY-001.2"
+      ],
+      "verified_criteria": [
+        "AC-HKY-001.1",
+        "AC-HKY-001.2"
+      ],
+      "implementation_files": [
+        "src/sunrahahu/hotkey.py"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "requirement_id": "STT-001",
+      "title": "MLX Whisper Transcription & Low-Gain Normalization",
+      "spec_file": "specs/transcription.md",
+      "is_planned": false,
+      "sha256": "49e7dae629fbdaa26a279720913232bc783e3bcfb5b9b7498619745ae255357e",
+      "verified_sha256": "49e7dae629fbdaa26a279720913232bc783e3bcfb5b9b7498619745ae255357e",
+      "acceptance_criteria": [
+        "AC-STT-001.1",
+        "AC-STT-001.2",
+        "AC-STT-001.3",
+        "AC-STT-001.4"
+      ],
+      "verified_criteria": [
+        "AC-STT-001.1",
+        "AC-STT-001.2",
+        "AC-STT-001.3",
+        "AC-STT-001.4"
+      ],
+      "implementation_files": [
+        "src/sunrahahu/transcriber.py"
+      ],
+      "status": "VERIFIED"
+    },
+    {
+      "requirement_id": "STT-002",
+      "title": "Multilingual Roman Script Steering & Hallucination Suppression",
+      "spec_file": "specs/transcription.md",
+      "is_planned": false,
+      "sha256": "f2df8eee7ab56b31ee4714412b30f0b1837c5bfe0a0860c3a0483fb2a6b477fe",
+      "verified_sha256": "f2df8eee7ab56b31ee4714412b30f0b1837c5bfe0a0860c3a0483fb2a6b477fe",
+      "acceptance_criteria": [
+        "AC-STT-002.1",
+        "AC-STT-002.2",
+        "AC-STT-002.3"
+      ],
+      "verified_criteria": [
+        "AC-STT-002.1",
+        "AC-STT-002.2",
+        "AC-STT-002.3"
+      ],
+      "implementation_files": [
+        "src/sunrahahu/transcriber.py"
+      ],
+      "status": "VERIFIED"
+    }
+  ]
+}

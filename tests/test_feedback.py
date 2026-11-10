@@ -10,6 +10,7 @@ from sunrahahu.feedback import (
 )
 
 
+# [verifies: FDB-001/AC-FDB-001.1]
 @patch("subprocess.run")
 def test_play_listening_cue_file(mock_run):
     with patch("os.path.exists", return_value=True):
@@ -18,6 +19,7 @@ def test_play_listening_cue_file(mock_run):
         assert "afplay" in mock_run.call_args[0][0]
 
 
+# [verifies: FDB-001/AC-FDB-001.5]
 @patch("subprocess.run")
 def test_play_listening_cue_fallback(mock_run):
     with patch("os.path.exists", return_value=False):
@@ -28,6 +30,7 @@ def test_play_listening_cue_fallback(mock_run):
         assert "Lekha" in args
 
 
+# [verifies: FDB-001/AC-FDB-001.2]
 @patch("subprocess.run")
 def test_play_typing_cue_file(mock_run):
     with patch("os.path.exists", return_value=True):
@@ -36,6 +39,7 @@ def test_play_typing_cue_file(mock_run):
         assert "afplay" in mock_run.call_args[0][0]
 
 
+# [verifies: FDB-001/AC-FDB-001.5]
 @patch("subprocess.run")
 def test_play_typing_cue_fallback(mock_run):
     with patch("os.path.exists", return_value=False):
@@ -46,6 +50,7 @@ def test_play_typing_cue_fallback(mock_run):
         assert "Samantha" in args
 
 
+# [verifies: FDB-001/AC-FDB-001.3]
 @patch("subprocess.run")
 def test_play_done_cue(mock_run):
     with patch("os.path.exists", return_value=True):
@@ -54,6 +59,7 @@ def test_play_done_cue(mock_run):
         assert "afplay" in mock_run.call_args[0][0]
 
 
+# [verifies: FDB-001/AC-FDB-001.4]
 @patch("subprocess.run")
 def test_play_command_cue_speech(mock_run):
     play_command_cue("Switching to desktop 3", async_play=False)
@@ -63,6 +69,7 @@ def test_play_command_cue_speech(mock_run):
     assert "Switching to desktop 3" in args
 
 
+# [verifies: FDB-001/AC-FDB-001.4]
 @patch("subprocess.run")
 def test_play_command_cue_sound(mock_run):
     with patch("os.path.exists", return_value=True):

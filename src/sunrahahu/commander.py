@@ -81,6 +81,7 @@ WAKE_PREFIX_PATTERN = re.compile(
 )
 
 
+# [spec: CMD-001]
 def is_jarvis_command(text: str) -> bool:
     """Determine if the input text starts with a recognized wake prefix."""
     if not text:
@@ -88,11 +89,13 @@ def is_jarvis_command(text: str) -> bool:
     return bool(WAKE_PREFIX_PATTERN.match(text))
 
 
+# [spec: CMD-001]
 def strip_jarvis_prefix(text: str) -> str:
     """Remove the wake prefix and leading/trailing punctuation."""
     return WAKE_PREFIX_PATTERN.sub("", text).strip()
 
 
+# [spec: CMD-001]
 def parse_desktop_number(text: str) -> int | None:
     """Extract desktop number 1-9 from command text."""
     for pattern in DESKTOP_PATTERNS:
@@ -106,6 +109,7 @@ def parse_desktop_number(text: str) -> int | None:
     return None
 
 
+# [spec: CMD-001]
 def parse_command(text: str) -> tuple[str | None, int | None]:
     """
     Parses command body after stripping wake prefix.
@@ -122,6 +126,7 @@ def parse_command(text: str) -> tuple[str | None, int | None]:
     return None, None
 
 
+# [spec: CMD-002]
 def switch_to_desktop(desktop_num: int) -> bool:
     """Switch to macOS Desktop Space N (1-9) using Quartz Control+N key event."""
     if desktop_num not in DESKTOP_KEYCODES:
@@ -144,6 +149,7 @@ def switch_to_desktop(desktop_num: int) -> bool:
         return False
 
 
+# [spec: CMD-002]
 def handle_command(text: str) -> bool:
     """
     Check if transcribed text is a Jarvis command and execute it.

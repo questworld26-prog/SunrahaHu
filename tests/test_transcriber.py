@@ -7,17 +7,20 @@ import numpy as np
 from sunrahahu.transcriber import MODEL_NAME, Transcriber
 
 
+# [verifies: STT-001/AC-STT-001.1]
 def test_transcriber_init():
     transcriber = Transcriber()
     assert transcriber.model_name == MODEL_NAME
 
 
+# [verifies: STT-001/AC-STT-001.2]
 def test_transcriber_empty_audio():
     transcriber = Transcriber()
     assert transcriber.transcribe(None) == ""
     assert transcriber.transcribe(np.array([], dtype=np.float32)) == ""
 
 
+# [verifies: STT-001/AC-STT-001.2]
 def test_transcriber_too_short_audio():
     transcriber = Transcriber()
     # 0.2s of audio is under the 0.4s threshold
@@ -25,6 +28,7 @@ def test_transcriber_too_short_audio():
     assert transcriber.transcribe(short_audio) == ""
 
 
+# [verifies: STT-001/AC-STT-001.1]
 @patch("mlx_whisper.transcribe")
 def test_transcriber_successful(mock_mlx_transcribe):
     mock_mlx_transcribe.return_value = {"text": "  नमस्ते, यह एक टेस्ट है।  "}
@@ -43,6 +47,7 @@ def test_transcriber_successful(mock_mlx_transcribe):
     assert kwargs["no_speech_threshold"] == 0.6
 
 
+# [verifies: STT-001/AC-STT-001.1]
 @patch("mlx_whisper.transcribe")
 def test_transcriber_translate(mock_mlx_transcribe):
     mock_mlx_transcribe.return_value = {"text": "Hello, this is a test."}
@@ -60,6 +65,7 @@ def test_transcriber_translate(mock_mlx_transcribe):
     assert kwargs["no_speech_threshold"] == 0.6
 
 
+# [verifies: STT-002/AC-STT-002.1]
 @patch("mlx_whisper.transcribe")
 def test_transcriber_roman_script(mock_mlx_transcribe):
     """Verifies that 'roman' language mode routes to language='en' with phonetic steering prompt."""
@@ -79,6 +85,7 @@ def test_transcriber_roman_script(mock_mlx_transcribe):
     assert "Hindi" in kwargs["initial_prompt"]
 
 
+# [verifies: STT-001/AC-STT-001.4]
 @patch("mlx_whisper.transcribe")
 def test_transcriber_low_gain_bluetooth_audio(mock_mlx_transcribe):
     """

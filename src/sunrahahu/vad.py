@@ -8,6 +8,7 @@ import onnxruntime as ort
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "assets", "silero_vad.onnx")
 
 
+# [spec: VAD-001]
 class SileroVAD:
     """
     Neural Voice Activity Detector using the Silero VAD v5 ONNX model.

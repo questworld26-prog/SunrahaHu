@@ -9,6 +9,8 @@ import sounddevice as sd
 from sunrahahu.vad import SileroVAD
 
 
+# [spec: AUD-001]
+# [spec: AUD-002]
 class AudioRecorder:
     def __init__(
         self,

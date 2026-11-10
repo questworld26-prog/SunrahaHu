@@ -9,6 +9,7 @@ SUN_RAHA_HU_AUDIO = os.path.join(AUDIO_DIR, "sun_raha_hu.m4a")
 TYPING_AUDIO = os.path.join(AUDIO_DIR, "typing.m4a")
 
 
+# [spec: FDB-001]
 def play_listening_cue(async_play: bool = True):
     """Play the 'सुन रहा हूँ' voice cue when recording starts."""
 
@@ -25,6 +26,7 @@ def play_listening_cue(async_play: bool = True):
         _play()
 
 
+# [spec: FDB-001]
 def play_typing_cue(async_play: bool = True):
     """Play the 'Typing' voice cue when recording stops and transcription/typing starts."""
 
@@ -41,6 +43,7 @@ def play_typing_cue(async_play: bool = True):
         _play()
 
 
+# [spec: FDB-001]
 def play_done_cue(async_play: bool = True):
     """Play subtle system completion sound."""
 
@@ -56,6 +59,7 @@ def play_done_cue(async_play: bool = True):
         _play()
 
 
+# [spec: FDB-001]
 def play_command_cue(message: str | None = None, async_play: bool = True):
     """Play spoken confirmation or sound for executed commands."""
 

@@ -5,12 +5,15 @@ from unittest.mock import MagicMock, patch
 from sunrahahu.injector import inject_text_to_active_window, type_unicode_string
 
 
+# [verifies: INJ-001/AC-INJ-001.4]
 def test_inject_text_empty():
     with patch("sunrahahu.injector.type_unicode_string") as mock_type:
         inject_text_to_active_window("")
         mock_type.assert_not_called()
+        assert mock_type.call_count == 0
 
 
+# [verifies: INJ-001/AC-INJ-001.1]
 @patch("Quartz.CGEventPost")
 @patch("Quartz.CGEventKeyboardSetUnicodeString")
 @patch("Quartz.CGEventCreateKeyboardEvent")
@@ -21,12 +24,14 @@ def test_type_unicode_string(mock_create_event, mock_set_unicode, mock_post_even
     mock_post_event.assert_called()
 
 
+# [verifies: INJ-001/AC-INJ-001.2]
 @patch("sunrahahu.injector.type_unicode_string")
 def test_inject_text_direct_default(mock_type):
     inject_text_to_active_window("New transcribed text")
     mock_type.assert_called_once_with("New transcribed text ")
 
 
+# [verifies: INJ-001/AC-INJ-001.3]
 @patch("sunrahahu.injector.post_cmd_v")
 @patch("sunrahahu.injector.get_pasteboard")
 def test_inject_text_clipboard_flow(

@@ -29,6 +29,8 @@ ROMAN_PHONETIC_PROMPT = (
 )
 
 
+# [spec: STT-001]
+# [spec: STT-002]
 class Transcriber:
     def __init__(self, model_name: str = MODEL_NAME):
         self.model_name = model_name

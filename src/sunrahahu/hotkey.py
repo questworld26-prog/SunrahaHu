@@ -3,6 +3,7 @@
 from pynput import keyboard
 
 
+# [spec: HKY-001]
 class HotkeyListener:
     def __init__(self, hotkey_combo: str, on_trigger):
         """

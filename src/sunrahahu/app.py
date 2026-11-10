@@ -10,6 +10,7 @@ from sunrahahu.injector import inject_text_to_active_window
 from sunrahahu.transcriber import Transcriber
 
 
+# [spec: APP-001]
 class SunrahaHuApp:
     def __init__(self, on_status_change=None):
         self.auto_stop_enabled = True

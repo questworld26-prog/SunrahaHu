@@ -39,6 +39,7 @@ TEST_MESSAGES = [
 AUDIO_DURATIONS_SEC = [1.0, 3.0, 5.0, 4.0, 4.0, 6.0, 3.0, 12.0, 5.0, 4.0]
 
 
+# [verifies: STT-001/AC-STT-001.1]
 @pytest.mark.stress
 def test_transcriber_stress_variable_length_and_hinglish():
     """
@@ -78,6 +79,7 @@ def test_transcriber_stress_variable_length_and_hinglish():
     assert all(d < 0.05 for d in durations)
 
 
+# [verifies: INJ-001/AC-INJ-001.1]
 @pytest.mark.stress
 @patch("sunrahahu.injector.type_unicode_string")
 def test_injector_stress_10_sequential_messages(mock_type):
@@ -104,6 +106,7 @@ def test_injector_stress_10_sequential_messages(mock_type):
     assert total_time < 0.2
 
 
+# [verifies: APP-001/AC-APP-001.2]
 @pytest.mark.stress
 @patch("sunrahahu.app.play_typing_cue")
 @patch("sunrahahu.app.play_done_cue")

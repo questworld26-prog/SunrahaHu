@@ -6,11 +6,13 @@ import AppKit
 import Quartz
 
 
+# [spec: INJ-001]
 def get_pasteboard():
     """Helper to retrieve system pasteboard."""
     return AppKit.NSPasteboard.generalPasteboard()
 
 
+# [spec: INJ-001]
 def post_cmd_v():
     """Simulate Cmd+V keyboard shortcut."""
     key_code_v = 9  # kVK_ANSI_V
@@ -28,6 +30,7 @@ def post_cmd_v():
     Quartz.CGEventPost(Quartz.kCGHIDEventTap, event_up)
 
 
+# [spec: INJ-001]
 def type_unicode_string(text: str):
     """
     Directly types a unicode string into the focused window using CGEventKeyboardSetUnicodeString.
@@ -54,6 +57,7 @@ def type_unicode_string(text: str):
             print(f"[Injector Error] Failed to post unicode chunk: {e}")
 
 
+# [spec: INJ-001]
 def inject_text_to_active_window(text: str, method: str = "direct"):
     """
     Inserts text into the currently active macOS application window.

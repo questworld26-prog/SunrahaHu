@@ -20,6 +20,11 @@ Instructions, architecture guidelines, and operational constraints for AI agents
 
 ## 2. Critical Development Rules & Constraints
 
+### ⚠️ Spec-Driven Development (SDD) & TDD Mandate
+- **Spec-First Rule**: Never write implementation code or tests without an approved EARS requirement in `specs/`.
+- **Two-Way AST Traceability**: Every public function and class in `src/` must be annotated with `# [spec: REQ-ID]`. Every test in `tests/` must be annotated with `# [verifies: REQ-ID/AC-ID]`.
+- **Pre-Commit Gatekeeper**: All changes must pass `python3 ~/.gemini/config/skills/spec-driven-development/scripts/guardian.py audit --strict` and `python3 ~/.gemini/config/skills/ears-spec-validator/scripts/ears_validator.py validate --strict` with zero violations.
+
 ### ⚠️ Never Add Features Without Explicit User Confirmation
 - **Do not introduce persistent logging or file persistence** unless explicitly requested and confirmed by the user.
 - Consult the user before introducing new background services, telemetry, or storage formats.
@@ -97,9 +102,14 @@ Before committing any changes:
    uv run pytest
    ```
    *(Ensure all unit, edge case, and stress tests pass without warnings or hangs).*
-3. **Check Git Status**:
+3. **Verify Spec Guardian & EARS Compliance**:
+   ```bash
+   python3 ~/.gemini/config/skills/ears-spec-validator/scripts/ears_validator.py validate --strict
+   python3 ~/.gemini/config/skills/spec-driven-development/scripts/guardian.py audit --strict
+   ```
+4. **Check Git Status**:
    ```bash
    git status -s
    ```
-4. **Preserve Release Log**:
+5. **Preserve Release Log**:
    - Keep [`release.md`](release.md) updated with the latest version at the top.

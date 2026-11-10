@@ -7,6 +7,7 @@ import numpy as np
 from sunrahahu.app import SunrahaHuApp
 
 
+# [verifies: APP-001/AC-APP-001.1]
 @patch("sunrahahu.app.play_listening_cue")
 @patch("sunrahahu.app.AudioRecorder")
 @patch("sunrahahu.app.Transcriber")
@@ -22,6 +23,7 @@ def test_app_start_recording(mock_transcriber_cls, mock_recorder_cls, mock_cue):
     mock_status_callback.assert_called_with("recording")
 
 
+# [verifies: APP-001/AC-APP-001.2]
 @patch("sunrahahu.app.play_typing_cue")
 @patch("sunrahahu.app.play_done_cue")
 @patch("sunrahahu.app.inject_text_to_active_window")
@@ -67,6 +69,7 @@ def test_app_stop_and_transcribe(
     mock_status_callback.assert_any_call("idle")
 
 
+# [verifies: APP-001/AC-APP-001.2]
 @patch("sunrahahu.app.play_typing_cue")
 @patch("sunrahahu.app.play_done_cue")
 @patch("sunrahahu.app.inject_text_to_active_window")
@@ -103,6 +106,7 @@ def test_app_language_selection(
     mock_inject.assert_called_once_with("হ্যালো বোব")
 
 
+# [verifies: APP-001/AC-APP-001.2]
 @patch("sunrahahu.app.handle_command", return_value=True)
 @patch("sunrahahu.app.play_typing_cue")
 @patch("sunrahahu.app.play_done_cue")
@@ -140,6 +144,7 @@ def test_app_jarvis_command_flow(
     mock_done_cue.assert_not_called()
 
 
+# [verifies: APP-001/AC-APP-001.4]
 @patch("sunrahahu.app.AudioRecorder")
 @patch("sunrahahu.app.Transcriber")
 def test_app_auto_silence(mock_transcriber_cls, mock_recorder_cls):
@@ -152,6 +157,7 @@ def test_app_auto_silence(mock_transcriber_cls, mock_recorder_cls):
     app.stop_and_transcribe.assert_called_once()
 
 
+# [verifies: APP-001/AC-APP-001.4]
 @patch("sunrahahu.app.AudioRecorder")
 @patch("sunrahahu.app.Transcriber")
 def test_app_auto_timeout(mock_transcriber_cls, mock_recorder_cls):
@@ -164,6 +170,7 @@ def test_app_auto_timeout(mock_transcriber_cls, mock_recorder_cls):
     app.stop_and_transcribe.assert_called_once()
 
 
+# [verifies: APP-001/AC-APP-001.1]
 def test_app_set_auto_stop():
     app = SunrahaHuApp()
     assert app.auto_stop_enabled is True
@@ -174,6 +181,7 @@ def test_app_set_auto_stop():
     assert app.recorder.vad_enabled is False
 
 
+# [verifies: APP-001/AC-APP-001.1]
 def test_app_set_device():
     app = SunrahaHuApp()
     assert app.selected_device is None

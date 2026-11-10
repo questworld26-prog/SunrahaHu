@@ -5,14 +5,16 @@ from unittest.mock import patch
 from sunrahahu.main import SunrahaHuMenuBar
 
 
+# [verifies: UI-001/AC-UI-001.1]
 def test_menu_bar_init():
     """Verify SunrahaHuMenuBar instantiates cleanly without rumps menu exceptions."""
     app = SunrahaHuMenuBar()
-    assert app is not None
+    assert app.title == "🎙️ Idle"
     assert app.mic_menu is not None
     assert len(app.mic_menu) > 0
 
 
+# [verifies: UI-001/AC-UI-001.2]
 @patch("sounddevice.query_devices")
 @patch("sounddevice.default")
 def test_menu_bar_microphone_selection(mock_default, mock_query):
@@ -34,3 +36,23 @@ def test_menu_bar_microphone_selection(mock_default, mock_query):
     # Switch back to default
     app.select_microphone(None, None)
     assert app.app_core.selected_device is None
+
+
+# [verifies: UI-001/AC-UI-001.3]
+def test_menu_bar_status_updates():
+    """Verify status title updates dispatched across states."""
+    app = SunrahaHuMenuBar()
+
+    # Call synchronous helper under patched AppHelper to execute inline
+    with patch("PyObjCTools.AppHelper.callAfter", side_effect=lambda fn: fn()):
+        app.on_status_change("recording")
+        assert app.title == "🔴 सुन रहा हूँ..."
+        assert app.status_item.title == "Status: Recording..."
+
+        app.on_status_change("transcribing")
+        assert app.title == "⚡ Transcribing..."
+        assert app.status_item.title == "Status: Transcribing..."
+
+        app.on_status_change("idle")
+        assert app.title == "🎙️ Idle"
+        assert app.status_item.title == "Status: Ready"
